@@ -1,0 +1,50 @@
+2022-01-03 14:57:28,144 - Model - INFO - PARAMETER ...
+2022-01-03 14:57:29,333 - Model - INFO - Namespace(model='pointnet2_part_seg_ssg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_ssg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-03 14:57:46,314 - Model - INFO - The number of training data is: 150
+2022-01-03 14:57:48,304 - Model - INFO - The number of test data is: 55
+2022-01-03 15:03:29,041 - Model - INFO - PARAMETER ...
+2022-01-03 15:03:29,386 - Model - INFO - Namespace(model='pointnet2_part_seg_ssg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_ssg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-03 15:03:32,981 - Model - INFO - The number of training data is: 150
+2022-01-03 15:03:34,738 - Model - INFO - The number of test data is: 55
+2022-01-03 15:03:57,294 - Model - INFO - No existing model, starting training from scratch...
+2022-01-03 15:04:14,304 - Model - INFO - Epoch 1 (1/251):
+2022-01-03 15:04:15,633 - Model - INFO - Learning rate:0.001000
+2022-01-03 15:05:23,046 - Model - INFO - PARAMETER ...
+2022-01-03 15:05:23,046 - Model - INFO - Namespace(model='pointnet2_part_seg_ssg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_ssg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-03 15:05:23,046 - Model - INFO - The number of training data is: 150
+2022-01-03 15:05:23,046 - Model - INFO - The number of test data is: 55
+2022-01-03 15:06:34,569 - Model - INFO - No existing model, starting training from scratch...
+2022-01-03 15:06:45,954 - Model - INFO - Epoch 1 (1/251):
+2022-01-03 15:06:46,376 - Model - INFO - Learning rate:0.001000
+2022-01-03 15:08:18,872 - Model - INFO - PARAMETER ...
+2022-01-03 15:08:18,872 - Model - INFO - Namespace(model='pointnet2_part_seg_ssg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_ssg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-03 15:08:18,888 - Model - INFO - The number of training data is: 150
+2022-01-03 15:08:18,888 - Model - INFO - The number of test data is: 55
+2022-01-03 15:08:34,211 - Model - INFO - PARAMETER ...
+2022-01-03 15:08:34,211 - Model - INFO - Namespace(model='pointnet2_part_seg_ssg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_ssg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-03 15:08:34,211 - Model - INFO - The number of training data is: 150
+2022-01-03 15:08:34,211 - Model - INFO - The number of test data is: 55
+2022-01-03 15:08:34,258 - Model - INFO - No existing model, starting training from scratch...
+2022-01-03 15:08:34,258 - Model - INFO - Epoch 1 (1/251):
+2022-01-03 15:08:34,258 - Model - INFO - Learning rate:0.001000
+2022-01-03 15:11:20,254 - Model - INFO - PARAMETER ...
+2022-01-03 15:11:20,254 - Model - INFO - Namespace(model='pointnet2_part_seg_ssg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_ssg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-03 15:11:20,254 - Model - INFO - The number of training data is: 150
+2022-01-03 15:11:20,254 - Model - INFO - The number of test data is: 55
+2022-01-03 15:11:20,286 - Model - INFO - No existing model, starting training from scratch...
+2022-01-03 15:11:20,301 - Model - INFO - Epoch 1 (1/251):
+2022-01-03 15:11:20,301 - Model - INFO - Learning rate:0.001000
+2022-01-03 15:11:55,704 - Model - INFO - PARAMETER ...
+2022-01-03 15:11:55,720 - Model - INFO - Namespace(model='pointnet2_part_seg_ssg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_ssg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-03 15:11:55,720 - Model - INFO - The number of training data is: 150
+2022-01-03 15:11:55,720 - Model - INFO - The number of test data is: 55
+2022-01-03 15:11:55,751 - Model - INFO - No existing model, starting training from scratch...
+2022-01-03 15:11:55,767 - Model - INFO - Epoch 1 (1/251):
+2022-01-03 15:11:55,767 - Model - INFO - Learning rate:0.001000
+2022-01-03 15:13:42,824 - Model - INFO - PARAMETER ...
+2022-01-03 15:13:42,824 - Model - INFO - Namespace(model='pointnet2_part_seg_ssg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_ssg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-03 15:13:42,840 - Model - INFO - The number of training data is: 150
+2022-01-03 15:13:42,840 - Model - INFO - The number of test data is: 55
+2022-01-03 15:13:42,871 - Model - INFO - No existing model, starting training from scratch...
+2022-01-03 15:13:42,871 - Model - INFO - Epoch 1 (1/251):
+2022-01-03 15:13:42,871 - Model - INFO - Learning rate:0.001000

@@ -98,7 +98,8 @@ class PartNormalDataset(Dataset):
             if not self.normal_channel:
                 point_set = data[:, 0:3]
             else:
-                point_set = data[:, 0:6]
+                point_set = data[:, 0:3]
+                point_set = np.hstack([point_set, np.zeros((len(point_set), 3))])
             seg = data[:, -1].astype(np.int32)
             if len(self.cache) < self.cache_size:
                 self.cache[index] = (point_set, cls, seg)
@@ -108,7 +109,6 @@ class PartNormalDataset(Dataset):
         # resample
         point_set = point_set[choice, :]
         seg = seg[choice]
-
         return point_set, cls, seg
 
     def __len__(self):
