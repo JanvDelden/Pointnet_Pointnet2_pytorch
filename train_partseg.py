@@ -95,7 +95,12 @@ def main(args):
     log_string('PARAMETER ...')
     log_string(args)
 
-    root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
+    use_cuda = torch.cuda.is_available()
+    device = torch.device('cuda:0' if use_cuda else 'cpu')
+    if use_cuda:
+        root = '/content/Pointnet_Pointnet2_pytorch/data'
+    else:
+        root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
 
     TRAIN_DATASET = PartNormalDataset(root=root, npoints=args.npoint, split='trainval', normal_channel=args.normal)
     trainDataLoader = torch.utils.data.DataLoader(TRAIN_DATASET, batch_size=args.batch_size, shuffle=True, num_workers=10, drop_last=True)
@@ -111,9 +116,6 @@ def main(args):
     MODEL = importlib.import_module(args.model)
     shutil.copy('models/%s.py' % args.model, str(exp_dir))
     shutil.copy('models/pointnet2_utils.py', str(exp_dir))
-
-    use_cuda = torch.cuda.is_available()
-    device = torch.device('cuda:0' if use_cuda else 'cpu')
 
     classifier = MODEL.get_model(num_part, normal_channel=args.normal).to(device)
     criterion = MODEL.get_loss().to(device)
