@@ -315,10 +315,6 @@ def main(args):
         val_accs.append(np.round(test_metrics['accuracy'], 5))
         val_loss.append(np.round(np.mean(mean_loss), 5))
 
-        print("TRAIN_ACCS:", train_accs)
-        print("TRAIN_LOSS:", train_loss)
-        print("VAL_ACCS:", val_accs)
-        print("VAL_LOSS:", val_loss)
 
         if (test_metrics['inctance_avg_iou'] >= best_inctance_avg_iou):
             logger.info('Save model...')
@@ -347,11 +343,15 @@ def main(args):
         log_string('Best inctance avg mIOU is: %.5f' % best_inctance_avg_iou)
         global_epoch += 1
 
+    # save performance measures
     performance_dir = exp_dir.joinpath('performance/')
     performance_dir.mkdir(exist_ok=True)
-    savepath = str(checkpoints_dir) + '/performance.npy'
-    performance_metrics = np.hstack(train_accs, train_loss, val_accs, val_loss)
-    np.save(savepath, performance_metrics)
+    accs_path = str(performance_dir) + '/accs.npy'
+    loss_path = str(performance_dir) + '/loss.npy'
+    accs = np.array([train_accs, val_accs]).T
+    loss = np.array([train_loss, val_loss]).T
+    np.save(accs_path, accs)
+    np.save(loss_path, loss)
 
 if __name__ == '__main__':
     args = parse_args()

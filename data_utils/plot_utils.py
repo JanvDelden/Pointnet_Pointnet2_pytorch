@@ -1,22 +1,17 @@
-def plot(title, label, train_results, val_results, yscale='linear', save_path=None,
-         extra_pt=None, extra_pt_label=None):
+def plot(title, label, result_path, yscale='linear', save_path=None):
     """Plot learning curves.
 
     Args:
         title (str): Title of plot
         label (str): x-axis label
-        train_results (list): Results vector of training of length of number
-            of epochs trained. Could be loss or accuracy.
-        val_results (list): Results vector of validation of length of number
-            of epochs. Could be loss or accuracy.
+        result_path: path to .npy file with results
         yscale (str, optional): Matplotlib.pyplot.yscale parameter.
             Defaults to 'linear'.
         save_path (str, optional): If passed, figure will be saved at this path.
             Defaults to None.
-        extra_pt (tuple, optional): Tuple of length 2, defining x and y coordinate
-            of where an additional black dot will be plotted. Defaults to None.
-        extra_pt_label (str, optional): Legend label of extra point. Defaults to None.
     """
+    train_results = np.load(result_path)[:, 0]
+    val_results = np.load(result_path)[:, 1]
 
     epoch_array = np.arange(len(train_results)) + 1
     train_label, val_label = "Training " + label.lower(), "Validation " + label.lower()
