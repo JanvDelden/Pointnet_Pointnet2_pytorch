@@ -16,11 +16,15 @@ def get_device(cuda_preference=True):
 def gen_split(percentages=(0.5, 0.2),
               paths=("/content/Pointnet_Pointnet2_pytorch/data/trainsplit.npy",
                      "/content/Pointnet_Pointnet2_pytorch/data/valsplit.npy"),
-              sample_number=255):
+              sample_number=255,
+              shuffle=True):
     import random
     import numpy as np
-    indices = range(sample_number)
-    indices = np.array(random.sample(indices, sample_number))
+    if shuffle:
+        indices = range(sample_number)
+        indices = np.array(random.sample(indices, sample_number))
+    else:
+        indices = np.arange(0, sample_number)
     start, percentage = 0, 0
     for i, (path) in enumerate(paths):
         percentage += percentages[i]
