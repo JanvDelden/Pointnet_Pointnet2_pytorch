@@ -42,17 +42,16 @@ class PartNormalDataset(Dataset):
             # print('category', item)
             self.meta[item] = []
             dir_point = os.path.join(self.root, self.cat[item])
-            fns = np.array(sorted(os.listdir(dir_point)))
+            fns = np.array(os.listdir(dir_point))
+            n = len(fns)
 
-            # OUR CODE
-            # outsource the choice of trees to easily choose random or deterministic behavior
+            fns = np.arange(0, n)
             indices = np.load(self.splitpath)
             fns = fns[indices]
 
             # print(os.path.basename(fns))
             for fn in fns:
-                token = (os.path.splitext(os.path.basename(fn))[0])
-                self.meta[item].append(os.path.join(dir_point, token + '.npy'))
+                self.meta[item].append(os.path.join(dir_point, str(fn) + '.npy'))
 
         self.datapath = []
         for item in self.cat:
