@@ -100,13 +100,14 @@ def main(args):
     if use_cuda:
         root = '/content/Pointnet_Pointnet2_pytorch/data'
     else:
-        #root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
-        root = "G:/Meine Ablage/Colab/tree_learning/data/chunks"
+        root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
+        # root = "G:/Meine Ablage/Colab/tree_learning/data/chunks"
+        trainpath = "/trainsplit.npy"
+        testpath = "/testsplit.npy"
 
-
-    TRAIN_DATASET = PartNormalDataset(root=root, npoints=args.npoint, split='trainval', normal_channel=args.normal)
+    TRAIN_DATASET = PartNormalDataset(root=root, npoints=args.npoint, splitpath=root + trainpath, normal_channel=args.normal)
     trainDataLoader = torch.utils.data.DataLoader(TRAIN_DATASET, batch_size=args.batch_size, shuffle=True, num_workers=10, drop_last=True)
-    TEST_DATASET = PartNormalDataset(root=root, npoints=args.npoint, split='test', normal_channel=args.normal)
+    TEST_DATASET = PartNormalDataset(root=root, npoints=args.npoint, splitpath=root + testpath, normal_channel=args.normal)
     testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=10)
     log_string("The number of training data is: %d" % len(TRAIN_DATASET))
     log_string("The number of test data is: %d" % len(TEST_DATASET))
