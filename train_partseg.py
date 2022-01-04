@@ -119,7 +119,7 @@ def main(args):
     shutil.copy('models/pointnet2_utils.py', str(exp_dir))
 
     classifier = MODEL.get_model(num_part, normal_channel=args.normal).to(device)
-    criterion = MODEL.get_loss().to(device)
+    criterion = MODEL.get_loss(weight=torch.tensor([1, 4]).to(device))
     classifier.apply(inplace_relu)
 
     def weights_init(m):

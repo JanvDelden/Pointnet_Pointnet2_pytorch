@@ -50,10 +50,11 @@ class get_model(nn.Module):
 
 
 class get_loss(nn.Module):
-    def __init__(self):
+    def __init__(self, weight):
         super(get_loss, self).__init__()
+        self.weight = weight
 
     def forward(self, pred, target, trans_feat):
-        total_loss = F.nll_loss(pred, target, weight=torch.tensor([1,4]))
+        total_loss = F.nll_loss(pred, target, weight=self.weight)
 
         return total_loss
