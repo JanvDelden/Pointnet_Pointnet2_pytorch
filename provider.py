@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def normalize_data(batch_data):
     """ Normalize the batch data, use coordinates of the block centered at origin,
         Input:
@@ -31,6 +32,7 @@ def shuffle_data(data, labels):
     np.random.shuffle(idx)
     return data[idx, ...], labels[idx], idx
 
+
 def shuffle_points(batch_data):
     """ Shuffle orders of points in each point cloud -- changes FPS behavior.
         Use the same shuffling idx for the entire batch.
@@ -42,6 +44,7 @@ def shuffle_points(batch_data):
     idx = np.arange(batch_data.shape[1])
     np.random.shuffle(idx)
     return batch_data[:,idx,:]
+
 
 def rotate_point_cloud(batch_data):
     """ Randomly rotate the point clouds to augument the dataset
@@ -63,6 +66,7 @@ def rotate_point_cloud(batch_data):
         rotated_data[k, ...] = np.dot(shape_pc.reshape((-1, 3)), rotation_matrix)
     return rotated_data
 
+
 def rotate_point_cloud_z(batch_data):
     """ Randomly rotate the point clouds to augument the dataset
         rotation is per shape based along up direction
@@ -83,6 +87,7 @@ def rotate_point_cloud_z(batch_data):
         rotated_data[k, ...] = np.dot(shape_pc.reshape((-1, 3)), rotation_matrix)
     return rotated_data
 
+
 def rotate_point_cloud_with_normal(batch_xyz_normal):
     ''' Randomly rotate XYZ, normal point cloud.
         Input:
@@ -102,6 +107,7 @@ def rotate_point_cloud_with_normal(batch_xyz_normal):
         batch_xyz_normal[k,:,0:3] = np.dot(shape_pc.reshape((-1, 3)), rotation_matrix)
         batch_xyz_normal[k,:,3:6] = np.dot(shape_normal.reshape((-1, 3)), rotation_matrix)
     return batch_xyz_normal
+
 
 def rotate_perturbation_point_cloud_with_normal(batch_data, angle_sigma=0.06, angle_clip=0.18):
     """ Randomly perturb the point clouds by small rotations
@@ -149,6 +155,7 @@ def rotate_point_cloud_by_angle(batch_data, rotation_angle):
         rotated_data[k,:,0:3] = np.dot(shape_pc.reshape((-1, 3)), rotation_matrix)
     return rotated_data
 
+
 def rotate_point_cloud_by_angle_with_normal(batch_data, rotation_angle):
     """ Rotate the point cloud along up direction with certain angle.
         Input:
@@ -170,7 +177,6 @@ def rotate_point_cloud_by_angle_with_normal(batch_data, rotation_angle):
         rotated_data[k,:,0:3] = np.dot(shape_pc.reshape((-1, 3)), rotation_matrix)
         rotated_data[k,:,3:6] = np.dot(shape_normal.reshape((-1,3)), rotation_matrix)
     return rotated_data
-
 
 
 def rotate_perturbation_point_cloud(batch_data, angle_sigma=0.06, angle_clip=0.18):
@@ -210,6 +216,7 @@ def jitter_point_cloud(batch_data, sigma=0.01, clip=0.05):
     jittered_data = np.clip(sigma * np.random.randn(B, N, C), -1*clip, clip)
     jittered_data += batch_data
     return jittered_data
+
 
 def shift_point_cloud(batch_data, shift_range=0.1):
     """ Randomly shift point cloud. Shift is per point cloud.
