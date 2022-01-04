@@ -100,7 +100,7 @@ def main(args):
     if use_cuda:
         root = '/content/Pointnet_Pointnet2_pytorch/data'
         trainpath = "/trainsplit.npy"
-        testpath = "/testsplit.npy"
+        testpath = "/valsplit.npy"
     else:
         root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
         # root = "G:/Meine Ablage/Colab/tree_learning/data/chunks"
