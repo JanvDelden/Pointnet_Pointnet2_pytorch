@@ -100,8 +100,9 @@ def main(args):
     if use_cuda:
         root = '/content/Pointnet_Pointnet2_pytorch/data'
     else:
-        root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
-        #root = "C:/Meine Ablage/Colab/tree_learning/data/chunks/01234"
+        #root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
+        root = "G:/Meine Ablage/Colab/tree_learning/data/chunks"
+
 
     TRAIN_DATASET = PartNormalDataset(root=root, npoints=args.npoint, split='trainval', normal_channel=args.normal)
     trainDataLoader = torch.utils.data.DataLoader(TRAIN_DATASET, batch_size=args.batch_size, shuffle=True, num_workers=10, drop_last=True)
@@ -110,20 +111,19 @@ def main(args):
     log_string("The number of training data is: %d" % len(TRAIN_DATASET))
     log_string("The number of test data is: %d" % len(TEST_DATASET))
 
-    num_classes = 16
-    num_part = 50
+    num_classes = 1
+    num_parts = 2
 
     '''MODEL LOADING'''
     MODEL = importlib.import_module(args.model)
     shutil.copy('models/%s.py' % args.model, str(exp_dir))
     shutil.copy('models/pointnet2_utils.py', str(exp_dir))
 
-    weights = torch.zeros(50)
-    weights[0] = 1
-    weights[1] = 4
+    weights = torch.tensor([1, 4])
     weights = weights.to(device)
+    weights = weights.float()
 
-    classifier = MODEL.get_model(num_part, normal_channel=args.normal).to(device)
+    classifier = MODEL.get_model(num_parts, num_classes, normal_channel=args.normal).to(device)
     criterion = MODEL.get_loss(weights=weights)
     classifier.apply(inplace_relu)
 
@@ -199,7 +199,7 @@ def main(args):
             points = points.transpose(2, 1)
 
             seg_pred, trans_feat = classifier(points, to_categorical(label, num_classes))
-            seg_pred = seg_pred.contiguous().view(-1, num_part)
+            seg_pred = seg_pred.contiguous().view(-1, num_parts)
             target = target.view(-1, 1)[:, 0]
             pred_choice = seg_pred.data.max(1)[1]
 
@@ -216,8 +216,8 @@ def main(args):
             test_metrics = {}
             total_correct = 0
             total_seen = 0
-            total_seen_class = [0 for _ in range(num_part)]
-            total_correct_class = [0 for _ in range(num_part)]
+            total_seen_class = [0 for _ in range(num_parts)]
+            total_correct_class = [0 for _ in range(num_parts)]
             shape_ious = {cat: [] for cat in seg_classes.keys()}
             seg_label_to_cat = {}  # {0:Airplane, 1:Airplane, ...49:Table}
 
@@ -246,7 +246,7 @@ def main(args):
                 total_correct += correct
                 total_seen += (cur_batch_size * NUM_POINT)
 
-                for l in range(num_part):
+                for l in range(num_parts):
                     total_seen_class[l] += np.sum(target == l)
                     total_correct_class[l] += (np.sum((cur_pred_val == l) & (target == l)))
 
