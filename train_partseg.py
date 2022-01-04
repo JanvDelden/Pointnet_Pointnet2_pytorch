@@ -345,11 +345,11 @@ def main(args):
         log_string('Best inctance avg mIOU is: %.5f' % best_inctance_avg_iou)
         global_epoch += 1
 
-performance_dir = exp_dir.joinpath('performance/')
-performance_dir.mkdir(exist_ok=True)
-savepath = str(checkpoints_dir) + '/performance.npy'
-performance_metrics = np.hstack(train_accs, train_loss, val_accs, val_loss)
-np.save(savepath, performance_metrics)
+    performance_dir = exp_dir.joinpath('performance/')
+    performance_dir.mkdir(exist_ok=True)
+    savepath = str(checkpoints_dir) + '/performance.npy'
+    performance_metrics = np.hstack(train_accs, train_loss, val_accs, val_loss)
+    np.save(savepath, performance_metrics)
 
 if __name__ == '__main__':
     args = parse_args()
