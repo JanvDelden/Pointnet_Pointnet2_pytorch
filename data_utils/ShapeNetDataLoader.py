@@ -15,10 +15,12 @@ def pc_normalize(pc):
 
 
 class PartNormalDataset(Dataset):
-    def __init__(self, root='/content/tmp', npoints=2500, split='train', class_choice=None, normal_channel=False, mode="train"):
+    def __init__(self, root, npoints=2500, splitpath, class_choice=None, normal_channel=False,
+                 mode="train"):
         self.npoints = npoints
         self.root = root
         self.mode = mode
+        self.splitpath = splitpath
         self.catfile = os.path.join(self.root, 'synsetoffset2category.txt')
         self.cat = {}
         self.normal_channel = normal_channel
@@ -42,26 +44,10 @@ class PartNormalDataset(Dataset):
             dir_point = os.path.join(self.root, self.cat[item])
             fns = np.array(sorted(os.listdir(dir_point)))
 
-            # ours
-            n = len(fns)
-            indices = range(n)
-            indices = np.array(random.sample(indices, n))
-            train_ids = indices[0:150]
-            val_ids = indices[150:200]
-            test_ids = indices[200:n]
-
-            # print(fns[0][0:-4])
-            if split == 'trainval':
-                fns = fns[train_ids]
-            elif split == 'train':
-                fns = fns[train_ids]
-            elif split == 'val':
-                fns = fns[val_ids]
-            elif split == 'test':
-                fns = fns[test_ids]
-            else:
-                print('Unknown split: %s. Exiting..' % (split))
-                exit(-1)
+            # OUR CODE
+            # outsource the choice of trees to easily choose random or deterministic behavior
+            indices = np.load(self.splitpath)
+            fns = fns[indices]
 
             # print(os.path.basename(fns))
             for fn in fns:
