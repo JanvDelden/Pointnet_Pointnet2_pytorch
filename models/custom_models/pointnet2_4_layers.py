@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
-from models.pointnet2_utils import PointNetSetAbstractionMsg,PointNetSetAbstraction,PointNetFeaturePropagation
+from models.pointnet2_utils import PointNetSetAbstractionMsg, PointNetSetAbstraction, PointNetFeaturePropagation
 
 
 class get_model(nn.Module):
@@ -14,16 +14,27 @@ class get_model(nn.Module):
 
         self.num_classes = num_classes
         self.normal_channel = normal_channel
-        self.sa1 = PointNetSetAbstractionMsg(npoint=512, radius_list=[0.1, 0.2, 0.4], nsample_list=[32, 64, 128],
+        # def __init__(self, npoint, radius_list, nsample_list, in_channel, mlp_list):
+        self.sa0 = PointNetSetAbstractionMsg(2048, radius_list=[0.05, 0.1, 0.2], nsample_list=[16, 32, 64],
                                              in_channel=3+additional_channel,
-                                             mlp_list=[[32, 32, 64], [64, 64, 128], [64, 96, 128]])
+                                             mlp_list=[[32, 32, 64], [32, 32, 64], [64, 96, 128]])
+        self.sa1 = PointNetSetAbstractionMsg(512, [0.1, 0.2, 0.4], [32, 64, 128],
+                                             in_channel=64+64+128,
+                                             mlp_list=[[128, 128, 256], [64, 64, 128]])
         self.sa2 = PointNetSetAbstractionMsg(128, [0.4, 0.8], [64, 128],
-                                             in_channel=128+128+64,
+                                             in_channel=256+128,
                                              mlp_list=[[128, 128, 256], [128, 196, 256]])
-        self.sa3 = PointNetSetAbstraction(npoint=None, radius=None, nsample=None, in_channel=512 + 3, mlp=[256, 512, 1024], group_all=True)
-        self.fp3 = PointNetFeaturePropagation(in_channel=1536, mlp=[256, 256])
-        self.fp2 = PointNetFeaturePropagation(in_channel=576, mlp=[256, 128])
-        self.fp1 = PointNetFeaturePropagation(in_channel=135+additional_channel, mlp=[128, 128])
+        self.sa3 = PointNetSetAbstraction(npoint=None, radius=None, nsample=None,
+                                          in_channel=512+3,
+                                          mlp=[256, 512, 1024], group_all=True)
+        # fp3 gets input from sa3 and sa2
+        self.fp3 = PointNetFeaturePropagation(in_channel=1024+512, mlp=[256, 256])
+        # fp2 gets input from fp3 and sa1
+        self.fp2 = PointNetFeaturePropagation(in_channel=256+256+128, mlp=[256, 128])
+        # fp1 gets input from fp2 and sa0
+        self.fp1 = PointNetFeaturePropagation(in_channel=128+64+64+128, mlp=[128, 128])
+        # fp0 gets input from fp1 + raw input + num_parts
+        self.fp0 = PointNetFeaturePropagation(in_channel=128+6+2+additional_channel, mlp=[128, 128])
         self.conv1 = nn.Conv1d(128, 128, 1)
         self.bn1 = nn.BatchNorm1d(128)
         self.drop1 = nn.Dropout(0.5)
@@ -42,8 +53,8 @@ class get_model(nn.Module):
         l2_xyz, l2_points = self.sa2(l1_xyz, l1_points)
         l3_xyz, l3_points = self.sa3(l2_xyz, l2_points)
         # Feature Propagation layers
-        l2_points = self.fp3(l2_xyz, l3_xyz, l2_points, l3_points)
-        l1_points = self.fp2(l1_xyz, l2_xyz, l1_points, l2_points)
+        l2_points = self.fp3(l2_xyz, l3_xyz, l2_points, l3_points) #sa3, sa2
+        l1_points = self.fp2(l1_xyz, l2_xyz, l1_points, l2_points) #fp3, sa1
         cls_label_one_hot = cls_label.view(B,self.num_classes,1).repeat(1,1,N)
         l0_points = self.fp1(l0_xyz, l1_xyz, torch.cat([cls_label_one_hot,l0_xyz,l0_points],1), l1_points)
         # FC layers
