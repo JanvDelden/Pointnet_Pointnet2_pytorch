@@ -171,8 +171,14 @@ def main(args):
     best_class_avg_iou = 0
     best_inctance_avg_iou = 0
 
+    train_accs = []
+    train_loss = []
+    val_accs = []
+    val_loss = []
+
     for epoch in range(start_epoch, args.epoch):
         mean_correct = []
+        mean_loss = []
 
         log_string('Epoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
         '''Adjust learning rate and BN momentum'''
@@ -207,12 +213,21 @@ def main(args):
             mean_correct.append(correct.item() / (args.batch_size * args.npoint))
             loss = criterion(seg_pred, target, trans_feat)
             loss.backward()
+            mean_loss.append(loss.item())
             optimizer.step()
 
         train_instance_acc = np.mean(mean_correct)
+        train_instance_acc = np.round(train_instance_acc, 5)
         log_string('Train accuracy is: %.5f' % train_instance_acc)
+        train_instance_loss = np.mean(mean_loss)
+        train_instance_loss = np.round(train_instance_loss, 5)
+
+        # append train acc and train loss of current epoch
+        train_loss.append(train_instance_loss)
+        train_accs.append(train_instance_acc)
 
         with torch.no_grad():
+            mean_loss = []
             test_metrics = {}
             total_correct = 0
             total_seen = 0
@@ -231,7 +246,16 @@ def main(args):
                 cur_batch_size, NUM_POINT, _ = points.size()
                 points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
                 points = points.transpose(2, 1)
-                seg_pred, _ = classifier(points, to_categorical(label, num_classes))
+                seg_pred, trans_feat = classifier(points, to_categorical(label, num_classes))
+
+                # calculate loss
+                seg_pred2 = seg_pred.clone()
+                seg_pred2 = seg_pred2.contiguous().view(-1, num_parts)
+                target2 = target.clone()
+                target2 = target2.view(-1, 1)[:, 0]
+                loss = criterion(seg_pred2, target2, trans_feat)
+                mean_loss.append(loss.item())
+
                 cur_pred_val = seg_pred.cpu().data.numpy()
                 cur_pred_val_logits = cur_pred_val
                 cur_pred_val = np.zeros((cur_batch_size, NUM_POINT)).astype(np.int32)
@@ -264,6 +288,9 @@ def main(args):
                                 np.sum((segl == l) | (segp == l)))
                     shape_ious[cat].append(np.mean(part_ious))
 
+
+
+
             all_shape_ious = []
             for cat in shape_ious.keys():
                 for iou in shape_ious[cat]:
@@ -280,6 +307,16 @@ def main(args):
 
         log_string('Epoch %d test Accuracy: %f  Class avg mIOU: %f   Inctance avg mIOU: %f' % (
             epoch + 1, test_metrics['accuracy'], test_metrics['class_avg_iou'], test_metrics['inctance_avg_iou']))
+
+        # append test acc and test loss of current epoch
+        val_accs.append(np.round(test_metrics['accuracy'], 5))
+        val_loss.append(np.round(np.mean(mean_loss), 5))
+
+        print("TRAIN_ACCS:", train_accs)
+        print("TRAIN_LOSS:", train_loss)
+        print("VAL_ACCS:", val_accs)
+        print("VAL_LOSS:", val_loss)
+
         if (test_metrics['inctance_avg_iou'] >= best_inctance_avg_iou):
             logger.info('Save model...')
             savepath = str(checkpoints_dir) + '/best_model.pth'
@@ -307,6 +344,11 @@ def main(args):
         log_string('Best inctance avg mIOU is: %.5f' % best_inctance_avg_iou)
         global_epoch += 1
 
+performance_dir = exp_dir.joinpath('performance/')
+performance_dir.mkdir(exist_ok=True)
+savepath = str(checkpoints_dir) + '/performance.npy'
+performance_metrics = np.hstack(train_accs, train_loss, val_accs, val_loss)
+np.save(savepath, performance_metrics)
 
 if __name__ == '__main__':
     args = parse_args()

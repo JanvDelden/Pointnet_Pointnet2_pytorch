@@ -2663,3 +2663,123 @@
 2022-01-04 10:16:13,573 - Model - INFO - No existing model, starting training from scratch...
 2022-01-04 10:16:13,589 - Model - INFO - Epoch 1 (1/251):
 2022-01-04 10:16:13,589 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:14:06,067 - Model - INFO - PARAMETER ...
+2022-01-04 11:14:06,067 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-04 11:14:06,089 - Model - INFO - The number of training data is: 150
+2022-01-04 11:14:06,089 - Model - INFO - The number of test data is: 55
+2022-01-04 11:14:06,105 - Model - INFO - No existing model, starting training from scratch...
+2022-01-04 11:14:06,120 - Model - INFO - Epoch 1 (1/251):
+2022-01-04 11:14:06,120 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:16:23,613 - Model - INFO - Train accuracy is: 0.67340
+2022-01-04 11:17:27,045 - Model - INFO - PARAMETER ...
+2022-01-04 11:17:27,045 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-04 11:17:27,063 - Model - INFO - The number of training data is: 150
+2022-01-04 11:17:27,063 - Model - INFO - The number of test data is: 55
+2022-01-04 11:17:27,089 - Model - INFO - No existing model, starting training from scratch...
+2022-01-04 11:17:27,089 - Model - INFO - Epoch 1 (1/251):
+2022-01-04 11:17:27,089 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:18:44,797 - Model - INFO - PARAMETER ...
+2022-01-04 11:18:44,797 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=10, normal=True, step_size=20, lr_decay=0.5)
+2022-01-04 11:18:44,818 - Model - INFO - The number of training data is: 150
+2022-01-04 11:18:44,818 - Model - INFO - The number of test data is: 55
+2022-01-04 11:18:44,849 - Model - INFO - No existing model, starting training from scratch...
+2022-01-04 11:18:44,849 - Model - INFO - Epoch 1 (1/251):
+2022-01-04 11:18:44,849 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:19:13,111 - Model - INFO - PARAMETER ...
+2022-01-04 11:19:13,111 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=100, normal=True, step_size=20, lr_decay=0.5)
+2022-01-04 11:19:13,142 - Model - INFO - The number of training data is: 150
+2022-01-04 11:19:13,142 - Model - INFO - The number of test data is: 55
+2022-01-04 11:19:13,158 - Model - INFO - No existing model, starting training from scratch...
+2022-01-04 11:19:13,174 - Model - INFO - Epoch 1 (1/251):
+2022-01-04 11:19:13,174 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:19:34,214 - Model - INFO - PARAMETER ...
+2022-01-04 11:19:34,214 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=512, normal=True, step_size=20, lr_decay=0.5)
+2022-01-04 11:19:34,245 - Model - INFO - The number of training data is: 150
+2022-01-04 11:19:34,245 - Model - INFO - The number of test data is: 55
+2022-01-04 11:19:34,261 - Model - INFO - No existing model, starting training from scratch...
+2022-01-04 11:19:34,276 - Model - INFO - Epoch 1 (1/251):
+2022-01-04 11:19:34,276 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:21:33,259 - Model - INFO - Train accuracy is: 0.61627
+2022-01-04 11:23:04,027 - Model - INFO - PARAMETER ...
+2022-01-04 11:23:04,027 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-04 11:23:04,059 - Model - INFO - The number of training data is: 150
+2022-01-04 11:23:04,059 - Model - INFO - The number of test data is: 55
+2022-01-04 11:23:04,090 - Model - INFO - No existing model, starting training from scratch...
+2022-01-04 11:23:04,106 - Model - INFO - Epoch 1 (1/251):
+2022-01-04 11:23:04,106 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:23:26,094 - Model - INFO - PARAMETER ...
+2022-01-04 11:23:26,094 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-04 11:23:26,112 - Model - INFO - The number of training data is: 150
+2022-01-04 11:23:26,112 - Model - INFO - The number of test data is: 55
+2022-01-04 11:23:26,159 - Model - INFO - No existing model, starting training from scratch...
+2022-01-04 11:23:26,159 - Model - INFO - Epoch 1 (1/251):
+2022-01-04 11:23:26,159 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:25:52,711 - Model - INFO - Train accuracy is: 0.62553
+2022-01-04 11:32:12,206 - Model - INFO - PARAMETER ...
+2022-01-04 11:32:12,206 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-04 11:32:12,234 - Model - INFO - The number of training data is: 150
+2022-01-04 11:32:12,234 - Model - INFO - The number of test data is: 55
+2022-01-04 11:32:12,265 - Model - INFO - No existing model, starting training from scratch...
+2022-01-04 11:32:12,265 - Model - INFO - Epoch 1 (1/251):
+2022-01-04 11:32:12,265 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:34:27,002 - Model - INFO - PARAMETER ...
+2022-01-04 11:34:27,002 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-04 11:34:27,033 - Model - INFO - The number of training data is: 150
+2022-01-04 11:34:27,033 - Model - INFO - The number of test data is: 55
+2022-01-04 11:34:27,064 - Model - INFO - No existing model, starting training from scratch...
+2022-01-04 11:34:27,064 - Model - INFO - Epoch 1 (1/251):
+2022-01-04 11:34:27,064 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:36:58,280 - Model - INFO - Train accuracy is: 0.62447
+2022-01-04 11:40:27,612 - Model - INFO - PARAMETER ...
+2022-01-04 11:40:27,612 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5)
+2022-01-04 11:40:27,643 - Model - INFO - The number of training data is: 150
+2022-01-04 11:40:27,643 - Model - INFO - The number of test data is: 55
+2022-01-04 11:40:27,672 - Model - INFO - No existing model, starting training from scratch...
+2022-01-04 11:40:27,679 - Model - INFO - Epoch 1 (1/251):
+2022-01-04 11:40:27,679 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:42:50,607 - Model - INFO - Train accuracy is: 0.68039
+2022-01-04 11:43:17,184 - Model - INFO - eval mIoU of Tree           0.419300
+2022-01-04 11:43:17,184 - Model - INFO - Epoch 1 test Accuracy: 0.838601  Class avg mIOU: 0.419300   Inctance avg mIOU: 0.419300
+2022-01-04 11:43:17,184 - Model - INFO - Save model...
+2022-01-04 11:43:17,184 - Model - INFO - Saving at log\part_seg\pointnet2_part_seg_msg\checkpoints/best_model.pth
+2022-01-04 11:43:17,226 - Model - INFO - Saving model....
+2022-01-04 11:43:17,227 - Model - INFO - Best accuracy is: 0.83860
+2022-01-04 11:43:17,227 - Model - INFO - Best class avg mIOU is: 0.41930
+2022-01-04 11:43:17,227 - Model - INFO - Best inctance avg mIOU is: 0.41930
+2022-01-04 11:43:17,227 - Model - INFO - Epoch 2 (2/251):
+2022-01-04 11:43:17,227 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:45:45,705 - Model - INFO - Train accuracy is: 0.75462
+2022-01-04 11:46:13,525 - Model - INFO - eval mIoU of Tree           0.419833
+2022-01-04 11:46:13,525 - Model - INFO - Epoch 2 test Accuracy: 0.839666  Class avg mIOU: 0.419833   Inctance avg mIOU: 0.419833
+2022-01-04 11:46:13,525 - Model - INFO - Save model...
+2022-01-04 11:46:13,525 - Model - INFO - Saving at log\part_seg\pointnet2_part_seg_msg\checkpoints/best_model.pth
+2022-01-04 11:46:13,555 - Model - INFO - Saving model....
+2022-01-04 11:46:13,555 - Model - INFO - Best accuracy is: 0.83967
+2022-01-04 11:46:13,555 - Model - INFO - Best class avg mIOU is: 0.41983
+2022-01-04 11:46:13,555 - Model - INFO - Best inctance avg mIOU is: 0.41983
+2022-01-04 11:46:13,555 - Model - INFO - Epoch 3 (3/251):
+2022-01-04 11:46:13,555 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:48:40,554 - Model - INFO - Train accuracy is: 0.79202
+2022-01-04 11:49:08,095 - Model - INFO - eval mIoU of Tree           0.095450
+2022-01-04 11:49:08,095 - Model - INFO - Epoch 3 test Accuracy: 0.183088  Class avg mIOU: 0.095450   Inctance avg mIOU: 0.095450
+2022-01-04 11:49:08,095 - Model - INFO - Best accuracy is: 0.83967
+2022-01-04 11:49:08,095 - Model - INFO - Best class avg mIOU is: 0.41983
+2022-01-04 11:49:08,095 - Model - INFO - Best inctance avg mIOU is: 0.41983
+2022-01-04 11:49:08,095 - Model - INFO - Epoch 4 (4/251):
+2022-01-04 11:49:08,095 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:51:33,757 - Model - INFO - Train accuracy is: 0.81205
+2022-01-04 11:52:01,078 - Model - INFO - eval mIoU of Tree           0.342770
+2022-01-04 11:52:01,080 - Model - INFO - Epoch 4 test Accuracy: 0.562163  Class avg mIOU: 0.342770   Inctance avg mIOU: 0.342770
+2022-01-04 11:52:01,080 - Model - INFO - Best accuracy is: 0.83967
+2022-01-04 11:52:01,080 - Model - INFO - Best class avg mIOU is: 0.41983
+2022-01-04 11:52:01,080 - Model - INFO - Best inctance avg mIOU is: 0.41983
+2022-01-04 11:52:01,080 - Model - INFO - Epoch 5 (5/251):
+2022-01-04 11:52:01,080 - Model - INFO - Learning rate:0.001000
+2022-01-04 11:54:28,527 - Model - INFO - Train accuracy is: 0.81237
+2022-01-04 11:54:55,221 - Model - INFO - eval mIoU of Tree           0.264697
+2022-01-04 11:54:55,221 - Model - INFO - Epoch 5 test Accuracy: 0.423597  Class avg mIOU: 0.264697   Inctance avg mIOU: 0.264697
+2022-01-04 11:54:55,221 - Model - INFO - Best accuracy is: 0.83967
+2022-01-04 11:54:55,221 - Model - INFO - Best class avg mIOU is: 0.41983
+2022-01-04 11:54:55,221 - Model - INFO - Best inctance avg mIOU is: 0.41983
+2022-01-04 11:54:55,221 - Model - INFO - Epoch 6 (6/251):
+2022-01-04 11:54:55,221 - Model - INFO - Learning rate:0.001000
