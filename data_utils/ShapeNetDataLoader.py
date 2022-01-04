@@ -15,7 +15,7 @@ def pc_normalize(pc):
 
 
 class PartNormalDataset(Dataset):
-    def __init__(self, root, npoints=2500, splitpath, class_choice=None, normal_channel=False,
+    def __init__(self, root, npoints=2500, splitpath="", class_choice=None, normal_channel=False,
                  mode="train"):
         self.npoints = npoints
         self.root = root
