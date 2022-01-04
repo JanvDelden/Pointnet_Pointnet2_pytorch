@@ -105,7 +105,7 @@ def main(args):
         root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
         # root = "G:/Meine Ablage/Colab/tree_learning/data/chunks"
         trainpath = "/trainsplit.npy"
-        testpath = "/testsplit.npy"
+        testpath = "/valsplit.npy"
 
     TRAIN_DATASET = PartNormalDataset(root=root, npoints=args.npoint, splitpath=root + trainpath, normal_channel=args.normal)
     trainDataLoader = torch.utils.data.DataLoader(TRAIN_DATASET, batch_size=args.batch_size, shuffle=True, num_workers=10, drop_last=True)
