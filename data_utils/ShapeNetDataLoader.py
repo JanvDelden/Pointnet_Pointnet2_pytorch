@@ -7,19 +7,21 @@ from torch.utils.data import Dataset
 import random
 warnings.filterwarnings('ignore')
 
+
 def pc_normalize(pc):
     m = np.max(np.sqrt(np.sum(pc ** 2, axis=1)))
     pc = pc / m
     return pc
 
+
 class PartNormalDataset(Dataset):
-    def __init__(self, root='/content/tmp', npoints=2500, split='train', class_choice=None, normal_channel=False):
+    def __init__(self, root='/content/tmp', npoints=2500, split='train', class_choice=None, normal_channel=False, mode="train"):
         self.npoints = npoints
         self.root = root
+        self.mode = mode
         self.catfile = os.path.join(self.root, 'synsetoffset2category.txt')
         self.cat = {}
         self.normal_channel = normal_channel
-
 
         with open(self.catfile, 'r') as f:
             for line in f:
@@ -33,7 +35,6 @@ class PartNormalDataset(Dataset):
         # print(self.cat)
 
         self.meta = {}
-
 
         for item in self.cat:
             # print('category', item)
@@ -85,30 +86,27 @@ class PartNormalDataset(Dataset):
         self.cache = {}  # from index to (point_set, cls, seg) tuple
         self.cache_size = 20000
 
-
     def __getitem__(self, index):
-        if index in self.cache:
-            point_set, cls, seg = self.cache[index]
+        fn = self.datapath[index]
+        cat = self.datapath[index][0]
+        cls = self.classes[cat]
+        cls = np.array([cls]).astype(np.int32)
+        data = np.load(fn[1]).astype(np.float32)
+        untransformed_points = data[:, 0:3]
+        if not self.normal_channel:
+            point_set = data[:, 0:3]
         else:
-            fn = self.datapath[index]
-            cat = self.datapath[index][0]
-            cls = self.classes[cat]
-            cls = np.array([cls]).astype(np.int32)
-            data = np.load(fn[1]).astype(np.float32)
-            if not self.normal_channel:
-                point_set = data[:, 0:3]
-            else:
-                point_set = data[:, 0:3]
-                point_set = np.hstack([point_set, np.zeros((len(point_set), 3))])
-            seg = data[:, -1].astype(np.int32)
-            if len(self.cache) < self.cache_size:
-                self.cache[index] = (point_set, cls, seg)
+            point_set = data[:, 0:3]
+            point_set = np.hstack([point_set, np.zeros((len(point_set), 3))])
+        seg = data[:, -1].astype(np.int32)
         point_set[:, 0:3] = pc_normalize(point_set[:, 0:3])
 
         choice = np.random.choice(len(seg), self.npoints, replace=True)
         # resample
         point_set = point_set[choice, :]
         seg = seg[choice]
+        if self.mode == "eval":
+            return point_set, cls, seg, untransformed_points, untransformed_points[choice, :]
         return point_set, cls, seg
 
     def __len__(self):
