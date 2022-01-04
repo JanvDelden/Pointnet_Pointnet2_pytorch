@@ -1,3 +1,7 @@
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 def plot(title, label, result_path, yscale='linear', save_path=None):
     """Plot learning curves.
 
