@@ -1,22 +1,15 @@
 # *_*coding:utf-8 *_*
 import os
-import json
 import warnings
 import numpy as np
 from torch.utils.data import Dataset
-import random
 warnings.filterwarnings('ignore')
 
 
-def pc_normalize(pc):
-    m = np.max(np.sqrt(np.sum(pc ** 2, axis=1)))
-    pc = pc / m
-    return pc
-
-
 class PartNormalDataset(Dataset):
-    def __init__(self, root, npoints=2500, splitpath="", class_choice=None, normal_channel=False,
+    def __init__(self, root, npoints=2500, splitpath="", class_choice=None, normal_channel=False, transform=None,
                  mode="train"):
+        self.transform = transform
         self.npoints = npoints
         self.root = root
         self.mode = mode
@@ -32,7 +25,7 @@ class PartNormalDataset(Dataset):
         self.cat = {k: v for k, v in self.cat.items()}
         self.classes_original = dict(zip(self.cat, range(len(self.cat))))
 
-        if not class_choice is  None:
+        if not class_choice is None:
             self.cat = {k:v for k,v in self.cat.items() if k in class_choice}
         # print(self.cat)
 
@@ -65,12 +58,6 @@ class PartNormalDataset(Dataset):
         # Mapping from category ('Chair') to a list of int [10,11,12,13] as segmentation labels
         self.seg_classes = {'Tree': [0, 1]}
 
-        # for cat in sorted(self.seg_classes.keys()):
-        #     print(cat, self.seg_classes[cat])
-
-        self.cache = {}  # from index to (point_set, cls, seg) tuple
-        self.cache_size = 20000
-
     def __getitem__(self, index):
         fn = self.datapath[index]
         cat = self.datapath[index][0]
@@ -78,13 +65,12 @@ class PartNormalDataset(Dataset):
         cls = np.array([cls]).astype(np.int32)
         data = np.load(fn[1]).astype(np.float32)
         untransformed_points = data[:, 0:3]
-        if not self.normal_channel:
-            point_set = data[:, 0:3]
-        else:
-            point_set = data[:, 0:3]
-            point_set = np.hstack([point_set, np.zeros((len(point_set), 3))])
+        point_set = data[:, 0:3]
         seg = data[:, -1].astype(np.int32)
-        point_set[:, 0:3] = pc_normalize(point_set[:, 0:3])
+        if self.transform:
+            point_set, seg = self.transform(point_set, seg)
+        if self.normal_channel:
+            point_set = np.hstack([point_set, np.zeros((len(point_set), 3))])
 
         choice = np.random.choice(len(seg), self.npoints, replace=True)
         # resample

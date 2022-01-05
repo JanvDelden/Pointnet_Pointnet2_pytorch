@@ -10,8 +10,8 @@ import logging
 import sys
 import importlib
 import shutil
-import provider
 import numpy as np
+import custom_functions.transform as t
 
 from pathlib import Path
 from tqdm import tqdm
@@ -107,9 +107,12 @@ def main(args):
         trainpath = "/trainsplit.npy"
         testpath = "/valsplit.npy"
 
-    TRAIN_DATASET = PartNormalDataset(root=root, npoints=args.npoint, splitpath=root + trainpath, normal_channel=args.normal)
+    traintransform = t.Compose([t.Normalize(), t.RandomScale(anisotropic=True, scale=[0.8, 1.2]), t.RandomJitter()])
+    testtransform = t.Compose([t.Normalize()])
+
+    TRAIN_DATASET = PartNormalDataset(root=root, npoints=args.npoint, transform=traintransform, splitpath=root + trainpath, normal_channel=args.normal)
     trainDataLoader = torch.utils.data.DataLoader(TRAIN_DATASET, batch_size=args.batch_size, shuffle=True, num_workers=10, drop_last=True)
-    TEST_DATASET = PartNormalDataset(root=root, npoints=args.npoint, splitpath=root + testpath, normal_channel=args.normal)
+    TEST_DATASET = PartNormalDataset(root=root, npoints=args.npoint, transform=testtransform, splitpath=root + testpath, normal_channel=args.normal)
     testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=10)
     log_string("The number of training data is: %d" % len(TRAIN_DATASET))
     log_string("The number of test data is: %d" % len(TEST_DATASET))
@@ -200,10 +203,6 @@ def main(args):
         for i, (points, label, target) in tqdm(enumerate(trainDataLoader), total=len(trainDataLoader), smoothing=0.9):
             optimizer.zero_grad()
 
-            points = points.data.numpy()
-            points[:, :, 0:3] = provider.random_scale_point_cloud(points[:, :, 0:3])
-            points[:, :, 0:3] = provider.shift_point_cloud(points[:, :, 0:3])
-            points = torch.Tensor(points)
             points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
             points = points.transpose(2, 1)
 
@@ -291,9 +290,6 @@ def main(args):
                                 np.sum((segl == l) | (segp == l)))
                     shape_ious[cat].append(np.mean(part_ious))
 
-
-
-
             all_shape_ious = []
             for cat in shape_ious.keys():
                 for iou in shape_ious[cat]:
@@ -315,8 +311,7 @@ def main(args):
         val_accs.append(np.round(test_metrics['accuracy'], 5))
         val_loss.append(np.round(np.mean(mean_loss), 5))
 
-
-        if (test_metrics['inctance_avg_iou'] >= best_inctance_avg_iou):
+        if test_metrics['inctance_avg_iou'] >= best_inctance_avg_iou:
             logger.info('Save model...')
             savepath = str(checkpoints_dir) + '/best_model.pth'
             log_string('Saving at %s' % savepath)
