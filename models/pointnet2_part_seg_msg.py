@@ -14,13 +14,25 @@ class get_model(nn.Module):
 
         self.num_classes = num_classes
         self.normal_channel = normal_channel
+
+        # the order of modules is equivalent to the order of application in the forward method
+        # set abstraction layers divide point cloud in npoint regional subsets (not necessarily exclusive)
+        # and apply Pointnet to these regions
+        # This procedure is applied three times at different scales defined by radius_list
+        # The maximum number of points in a region is defined by nsample_list
+        # mlp_list defines the structure of the Pointnets
         self.sa1 = PointNetSetAbstractionMsg(npoint=512, radius_list=[0.1, 0.2, 0.4], nsample_list=[32, 64, 128],
                                              in_channel=3+additional_channel,
                                              mlp_list=[[32, 32, 64], [64, 64, 128], [64, 96, 128]])
         self.sa2 = PointNetSetAbstractionMsg(128, [0.4, 0.8], [64, 128],
                                              in_channel=128+128+64,
                                              mlp_list=[[128, 128, 256], [128, 196, 256]])
-        self.sa3 = PointNetSetAbstraction(npoint=None, radius=None, nsample=None, in_channel=512 + 3, mlp=[256, 512, 1024], group_all=True)
+        self.sa3 = PointNetSetAbstraction(npoint=None, radius=None, nsample=None,
+                                          in_channel=512 + 3,
+                                          mlp=[256, 512, 1024], group_all=True)
+
+        # feature propagation layers aggregate the information encoded by the set abstraction layers and upscale to
+        # provide predictions for the total number of points
         self.fp3 = PointNetFeaturePropagation(in_channel=1536, mlp=[256, 256])
         self.fp2 = PointNetFeaturePropagation(in_channel=576, mlp=[256, 128])
         self.fp1 = PointNetFeaturePropagation(in_channel=135+additional_channel, mlp=[128, 128])

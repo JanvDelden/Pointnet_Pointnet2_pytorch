@@ -35,6 +35,24 @@ class ToTensor(object):
         return points, label
 
 
+class Normalize(object):
+    """
+    rescales the x, y and z values
+    optionally fixed values for rescaling can be provided, otherwise the biggest distance from the zero point is used
+    """
+    def __init__(self, values=np.array([6.9, 6.9, 20])):
+        self.values = values
+
+    def __call__(self, points, label):
+        if self.values:
+            points = points / self.values
+        else:
+            # this is approx. 30 for a typical chunk
+            m = np.max(np.sqrt(np.sum(points ** 2, axis=1)))
+            points = points / m
+        return points, label
+
+
 class RandomRotate(object):
     """
     Rotation around the z axis.
