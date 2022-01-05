@@ -1,6 +1,0 @@
-2022-01-04 09:54:04,135 - Model - INFO - PARAMETER ...
-2022-01-04 09:54:04,135 - Model - INFO - Namespace(model='pointnet_part_seg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir=None, decay_rate=0.0001, npoint=2048, normal=False, step_size=20, lr_decay=0.5)
-2022-01-04 09:54:39,202 - Model - INFO - PARAMETER ...
-2022-01-04 09:54:39,202 - Model - INFO - Namespace(model='pointnet_part_seg', batch_size=16, epoch=251, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir=None, decay_rate=0.0001, npoint=2048, normal=False, step_size=20, lr_decay=0.5)
-2022-01-04 09:54:39,224 - Model - INFO - The number of training data is: 150
-2022-01-04 09:54:39,224 - Model - INFO - The number of test data is: 55
