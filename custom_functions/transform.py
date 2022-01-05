@@ -40,16 +40,17 @@ class Normalize(object):
     rescales the x, y and z values
     optionally fixed values for rescaling can be provided, otherwise the biggest distance from the zero point is used
     """
-    def __init__(self, values=np.array([6.9, 6.9, 20])):
+    def __init__(self, values=np.array([6.9, 6.9, 15])):
         self.values = values
 
     def __call__(self, points, label):
-        if self.values:
-            points = points / self.values
-        else:
+        if self.values is None:
             # this is approx. 30 for a typical chunk
             m = np.max(np.sqrt(np.sum(points ** 2, axis=1)))
             points = points / m
+        else:
+            points = points / self.values
+            points[:, 2] = points[:, 2] - 1
         return points, label
 
 

@@ -66,11 +66,11 @@ class PartNormalDataset(Dataset):
         data = np.load(fn[1]).astype(np.float32)
         untransformed_points = data[:, 0:3]
         point_set = data[:, 0:3]
+        seg = data[:, -1].astype(np.int32)
         if self.transform:
-            point_set = self.transform(point_set)
+            point_set, seg = self.transform(point_set, seg)
         if self.normal_channel:
             point_set = np.hstack([point_set, np.zeros((len(point_set), 3))])
-        seg = data[:, -1].astype(np.int32)
 
         choice = np.random.choice(len(seg), self.npoints, replace=True)
         # resample
