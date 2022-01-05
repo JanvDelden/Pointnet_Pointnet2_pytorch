@@ -34,7 +34,7 @@ class get_model(nn.Module):
         # fp2 gets input from fp3 and sa1
         self.fp2 = PointNetFeaturePropagation(in_channel=128+64+64+128, mlp=[128, 128])
         # fp1 gets input from fp2 + raw input + num_parts
-        self.fp1 = PointNetFeaturePropagation(in_channel=128+6+2+additional_channel, mlp=[128, 128])
+        self.fp1 = PointNetFeaturePropagation(in_channel=128+6+1+additional_channel, mlp=[128, 128])
         self.conv1 = nn.Conv1d(128, 128, 1)
         self.bn1 = nn.BatchNorm1d(128)
         self.drop1 = nn.Dropout(0.5)
