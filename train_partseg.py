@@ -104,8 +104,8 @@ def main(args):
         testpath = "/valsplit.npy"
 
         # save split information for later purposes
-        trainsplit = np.read(root + trainpath)
-        testsplit = np.read(root + testpath)
+        trainsplit = np.load(root + trainpath)
+        testsplit = np.load(root + testpath)
 
         split_dir = exp_dir.joinpath('split/')
         split_dir.mkdir(exist_ok=True)
