@@ -256,6 +256,7 @@ def main(args):
             total_correct_class = [0 for _ in range(num_parts)]
             shape_ious = {cat: [] for cat in seg_classes.keys()}
             seg_label_to_cat = {}  # {0:Airplane, 1:Airplane, ...49:Table}
+            w_acc = []
 
             for cat in seg_classes.keys():
                 for label in seg_classes[cat]:
@@ -291,6 +292,14 @@ def main(args):
                 total_correct += correct
                 total_seen += (cur_batch_size * NUM_POINT)
 
+                # weighted accuracy
+                tp = sum(np.logical_and(target == 1, cur_pred_val == 1))
+                fn = sum(np.logical_and(target == 1, cur_pred_val == 0))
+                fp = sum(np.logical_and(target == 0, cur_pred_val == 1))
+                tn = sum(np.logical_and(target == 0, cur_pred_val == 0))
+
+                w_acc = w_acc.append((tp / (tp+fn) + tn / (tn+fp)) / 2)
+
                 for l in range(num_parts):
                     total_seen_class[l] += np.sum(target == l)
                     total_correct_class[l] += (np.sum((cur_pred_val == l) & (target == l)))
@@ -323,8 +332,9 @@ def main(args):
             test_metrics['class_avg_iou'] = mean_shape_ious
             test_metrics['inctance_avg_iou'] = np.mean(all_shape_ious)
 
-        log_string('Epoch %d test Accuracy: %f  Class avg mIOU: %f   Inctance avg mIOU: %f' % (
-            epoch + 1, test_metrics['accuracy'], test_metrics['class_avg_iou'], test_metrics['inctance_avg_iou']))
+        w_acc = np.mean(w_acc)
+        log_string('Epoch %d test Accuracy: %f weighted accuracy: %f mIOU: %f' % (
+            epoch + 1, test_metrics['accuracy'], w_acc, test_metrics['class_avg_iou']))
 
         # append test acc and test loss of current epoch
         val_accs.append(np.round(test_metrics['accuracy'], 5))
