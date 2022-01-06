@@ -71,9 +71,11 @@ class PartNormalDataset(Dataset):
             point_set, seg = self.transform(point_set, seg)
         if self.normal_channel:
             point_set = np.hstack([point_set, np.zeros((len(point_set), 3))])
+        if len(point_set) < self.npoints:
+            choice = np.random.choice(len(seg), self.npoints, replace=True)
+        else:
+            choice = np.random.choice(len(seg), self.npoints, replace=False)
 
-        # TODO replace replace argument
-        choice = np.random.choice(len(seg), self.npoints, replace=True)
         # resample
         point_set = point_set[choice, :]
         seg = seg[choice]
