@@ -10,6 +10,7 @@ class Compose(object):
     """
     Composes transformations to be passed to dataset class
     """
+
     def __init__(self, transforms):
         self.transforms = transforms
 
@@ -23,6 +24,7 @@ class ToTensor(object):
     """
     ensures correct format before returning data
     """
+
     def __call__(self, points, label):
         points = torch.from_numpy(points)
         if not isinstance(points, torch.FloatTensor):
@@ -40,6 +42,7 @@ class Normalize(object):
     rescales the x, y and z values
     optionally fixed values for rescaling can be provided, otherwise the biggest distance from the zero point is used
     """
+
     def __init__(self, values=np.array([6.9, 6.9, 15])):
         self.values = values
 
@@ -58,6 +61,7 @@ class RandomRotate(object):
     """
     Rotation around the z axis.
     """
+
     def __init__(self, angle=1):
         self.angle = angle
 
@@ -74,6 +78,7 @@ class RandomScale(object):
     The points are linearly scaled in size. thus a tree could become bigger or smaller.
     If Anisotropic, the x, y and z components are scaled by different values
     """
+
     def __init__(self, scale=[0.9, 1.1], anisotropic=False):
         self.scale = scale
         self.anisotropic = anisotropic
@@ -88,6 +93,7 @@ class RandomShift(object):
     """
     Shifts all points a given maximum distance
     """
+
     def __init__(self, shift=[0.2, 0.2, 0]):
         self.shift = shift
 
@@ -103,6 +109,7 @@ class RandomFlip(object):
     """
     mirrors all points on the x and on the y axis
     """
+
     def __init__(self, p=0.5):
         self.p = p
 
@@ -118,6 +125,7 @@ class RandomJitter(object):
     """
     Shifts all points a random distance. The distance shifted is different for every point
     """
+
     def __init__(self, sigma=0.01, clip=0.05):
         self.sigma = sigma
         self.clip = clip
@@ -126,4 +134,20 @@ class RandomJitter(object):
         assert (self.clip > 0)
         jitter = np.clip(self.sigma * np.random.randn(points.shape[0], 3), -1 * self.clip, self.clip)
         points += jitter
+        return points, label
+
+
+class RandomDropout(object):
+    """
+    randomly sets points to [0,0,0], a random ratio of points is selected with max_dropout_ratio as upper bound
+    """
+
+    def __init__(self, max_dropout_ratio=0.8):
+        self.max_dropout_ratio = max_dropout_ratio
+
+    def __call__(self, points, label):
+        dropout_ratio = np.random.random() * self.max_dropout_ratio
+        npoints = np.round(dropout_ratio * len(points)).astype(int)
+        drop_idx = np.random.choice(len(points), npoints, replace=False)
+        points[drop_idx] = np.zeros((npoints, 3)) + points[0]
         return points, label

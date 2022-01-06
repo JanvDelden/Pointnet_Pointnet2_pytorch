@@ -122,6 +122,7 @@ def main(args):
         testpath = "/valsplit.npy"
 
     traintransform = t.Compose([t.Normalize(),
+                                t.RandomDropout(),
                                 t.RandomScale(anisotropic=True, scale=[0.8, 1.2]),
                                 t.RandomRotate(),
                                 t.RandomFlip(),
