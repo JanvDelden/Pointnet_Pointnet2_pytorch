@@ -204,6 +204,7 @@ def main(args):
     for epoch in range(start_epoch, args.epoch):
         mean_correct = []
         mean_loss = []
+        w_acc = []
 
         log_string('Epoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
         '''Adjust learning rate and BN momentum'''
@@ -293,12 +294,12 @@ def main(args):
                 total_seen += (cur_batch_size * NUM_POINT)
 
                 # weighted accuracy
-                tp = sum(np.logical_and(target == 1, cur_pred_val == 1))
-                fn = sum(np.logical_and(target == 1, cur_pred_val == 0))
-                fp = sum(np.logical_and(target == 0, cur_pred_val == 1))
-                tn = sum(np.logical_and(target == 0, cur_pred_val == 0))
+                tp = np.sum(np.logical_and(target == 1, cur_pred_val == 1))
+                fn = np.sum(np.logical_and(target == 1, cur_pred_val == 0))
+                fp = np.sum(np.logical_and(target == 0, cur_pred_val == 1))
+                tn = np.sum(np.logical_and(target == 0, cur_pred_val == 0))
 
-                w_acc = w_acc.append((tp / (tp+fn) + tn / (tn+fp)) / 2)
+                w_acc.append((tp / (tp+fn) + tn / (tn+fp)) / 2)
 
                 for l in range(num_parts):
                     total_seen_class[l] += np.sum(target == l)
