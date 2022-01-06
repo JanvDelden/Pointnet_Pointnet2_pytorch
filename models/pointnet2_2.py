@@ -21,7 +21,7 @@ class get_model(nn.Module):
         # This procedure is applied three times at different scales defined by radius_list
         # The maximum number of points in a region is defined by nsample_list
         # mlp_list defines the structure of the Pointnets
-        self.sa1 = PointNetSetAbstractionMsg(npoint=512, radius_list=[0.03, 0.06, 0.12], nsample_list=[32, 64, 128],
+        self.sa1 = PointNetSetAbstractionMsg(npoint=512, radius_list=[0.03, 0.06, 0.12], nsample_list=[64, 128, 256],
                                              in_channel=3+additional_channel,
                                              mlp_list=[[32, 32, 64], [64, 64, 128], [64, 96, 128]])
         self.sa2 = PointNetSetAbstractionMsg(256, radius_list=[0.12, 0.24], nsample_list=[64, 128],

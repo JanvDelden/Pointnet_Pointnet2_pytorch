@@ -121,7 +121,11 @@ def main(args):
         trainpath = "/trainsplit.npy"
         testpath = "/valsplit.npy"
 
-    traintransform = t.Compose([t.Normalize(), t.RandomScale(anisotropic=True, scale=[0.8, 1.2]), t.RandomJitter()])
+    traintransform = t.Compose([t.Normalize(),
+                                t.RandomScale(anisotropic=True, scale=[0.8, 1.2]),
+                                t.RandomRotate(),
+                                t.RandomFlip(),
+                                t.RandomJitter()])
     testtransform = t.Compose([t.Normalize()])
 
     TRAIN_DATASET = PartNormalDataset(root=root, npoints=args.npoint, transform=traintransform, splitpath=root + trainpath, normal_channel=args.normal)
