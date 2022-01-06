@@ -57,9 +57,11 @@ class get_model(nn.Module):
         l1_xyz, l1_points = self.sa1(l0_xyz, l0_points)
         l2_xyz, l2_points = self.sa2(l1_xyz, l1_points)
         l3_xyz, l3_points = self.sa3(l2_xyz, l2_points)
+        l4_xyz, l4_points = self.sa4(l3_xyz, l3_points)
         # Feature Propagation layers
-        l2_points = self.fp3(l2_xyz, l3_xyz, l2_points, l3_points)
-        l1_points = self.fp2(l1_xyz, l2_xyz, l1_points, l2_points)
+        l3_points = self.fp4(l3_xyz, l4_xyz, l3_points, l4_points) #sa4, sa3
+        l2_points = self.fp3(l2_xyz, l3_xyz, l2_points, l3_points) #fp4, sa2
+        l1_points = self.fp2(l1_xyz, l2_xyz, l1_points, l2_points) #fp3, sa1
         cls_label_one_hot = cls_label.view(B,self.num_classes,1).repeat(1,1,N)
         l0_points = self.fp1(l0_xyz, l1_xyz, torch.cat([cls_label_one_hot,l0_xyz,l0_points],1), l1_points)
         # FC layers
