@@ -24,7 +24,7 @@ ROOT_DIR = BASE_DIR
 sys.path.append(os.path.join(ROOT_DIR, 'models'))
 
 seg_classes = {'Tree': [0, 1]}
-seg_label_to_cat = {}  # {0:Airplane, 1:Airplane, ...49:Table}
+seg_label_to_cat = {}
 for cat in seg_classes.keys():
     for label in seg_classes[cat]:
         seg_label_to_cat[label] = cat
@@ -34,6 +34,7 @@ def inplace_relu(m):
     classname = m.__class__.__name__
     if classname.find('ReLU') != -1:
         m.inplace=True
+
 
 def to_categorical(y, num_classes):
     """ 1-hot encodes a tensor """
@@ -57,6 +58,7 @@ def parse_args():
     parser.add_argument('--normal', action='store_true', default=False, help='use normals')
     parser.add_argument('--step_size', type=int, default=20, help='decay step for lr decay')
     parser.add_argument('--lr_decay', type=float, default=0.5, help='decay rate for lr decay')
+    parser.add_argument('--weight', type=float, default=5.2, help='weight to be applied to loss of tree points')
 
     return parser.parse_args()
 
@@ -85,6 +87,9 @@ def main(args):
     log_dir = exp_dir.joinpath('logs/')
     log_dir.mkdir(exist_ok=True)
 
+    train_summary_dir = exp_dir.joinpath('train_summary/')
+    train_summary_dir.mkdir(exist_ok=True)
+
     '''LOG'''
     args = parse_args()
     logger = logging.getLogger("Model")
@@ -97,8 +102,10 @@ def main(args):
     log_string('PARAMETER ...')
     log_string(args)
 
+    '''DEFINE DEVICE FOR TRAINING AND OTHER DATA RELATED STUFF'''
     use_cuda = torch.cuda.is_available()
     device = torch.device('cuda:0' if use_cuda else 'cpu')
+
     if use_cuda:
         # define paths where split information is located for dataset
         root = '/content/Pointnet_Pointnet2_pytorch/data'
@@ -122,6 +129,7 @@ def main(args):
         trainpath = "/trainsplit.npy"
         testpath = "/valsplit.npy"
 
+    '''TRANSFORMATIONS TO BE APPLIED DURING TRAINING AND TEST TIME'''
     traintransform = t.Compose([t.Normalize(),
                                 t.RandomScale(anisotropic=True, scale=[0.8, 1.2]),
                                 t.RandomRotate(),
@@ -144,7 +152,7 @@ def main(args):
     shutil.copy('models/%s.py' % args.model, str(exp_dir))
     shutil.copy('models/pointnet2_utils.py', str(exp_dir))
 
-    weights = torch.tensor([1, 4])
+    weights = torch.tensor([1, args.weight])
     weights = weights.to(device)
     weights = weights.float()
 
@@ -196,10 +204,21 @@ def main(args):
     best_class_avg_iou = 0
     best_inctance_avg_iou = 0
 
+    # train metrics
     train_accs = []
+    train_w_acc = []
     train_loss = []
+    train_miou = []
+
+    # val metrics
     val_accs = []
+    val_w_acc = []
     val_loss = []
+    val_miou = []
+
+    '''
+    START TRAINING
+    '''
 
     for epoch in range(start_epoch, args.epoch):
         mean_correct = []
@@ -225,6 +244,7 @@ def main(args):
             points, target = provider.random_point_dropout(points, target)
             points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
             points = points.transpose(2, 1)
+            cur_batch_size, NUM_POINT, _ = points.size()
 
             seg_pred, trans_feat = classifier(points, to_categorical(label, num_classes))
             seg_pred = seg_pred.contiguous().view(-1, num_parts)
@@ -238,6 +258,43 @@ def main(args):
             mean_loss.append(loss.item())
             optimizer.step()
 
+            # clone to calculate weighted accuracy
+            cur_pred_val = seg_pred.cpu().data.numpy()
+            cur_pred_val_logits = cur_pred_val
+            cur_pred_val = np.zeros((cur_batch_size, NUM_POINT)).astype(np.int32)
+            target = target.cpu().data.numpy()
+
+            for i in range(cur_batch_size):
+                cat = seg_label_to_cat[target[i, 0]]
+                logits = cur_pred_val_logits[i, :, :]
+                cur_pred_val[i, :] = np.argmax(logits[:, seg_classes[cat]], 1) + seg_classes[cat][0]
+
+            # weighted accuracy for batch
+            tp = np.sum(np.logical_and(target == 1, cur_pred_val == 1))
+            fn = np.sum(np.logical_and(target == 1, cur_pred_val == 0))
+            fp = np.sum(np.logical_and(target == 0, cur_pred_val == 1))
+            tn = np.sum(np.logical_and(target == 0, cur_pred_val == 0))
+
+            w_acc.append((tp / (tp + fn) + tn / (tn + fp)) / 2)
+
+            # iou
+
+            for j in range(cur_batch_size):
+                segp = cur_pred_val[j, :]
+                segl = target[j, :]
+                cat = seg_label_to_cat[segl[0]]
+                part_ious = [0.0 for _ in range(len(seg_classes[cat]))]
+                for l in seg_classes[cat]:
+                    if (np.sum(segl == l) == 0) and (
+                            np.sum(segp == l) == 0):  # part is not present, no prediction as well
+                        part_ious[l - seg_classes[cat][0]] = 1.0
+                    else:
+                        part_ious[l - seg_classes[cat][0]] = np.sum((segl == l) & (segp == l)) / float(
+                            np.sum((segl == l) | (segp == l)))
+                shape_ious[cat].append(np.mean(part_ious))  # shape iou is unweighted average of iou of parts
+
+        '''After one epoch, metrics aggregated over iterations'''
+        w_acc = np.mean(w_acc)
         train_instance_acc = np.mean(mean_correct)
         train_instance_acc = np.round(train_instance_acc, 5)
         log_string('Train accuracy is: %.5f' % train_instance_acc)
@@ -245,6 +302,7 @@ def main(args):
         train_instance_loss = np.round(train_instance_loss, 5)
 
         # append train acc and train loss of current epoch
+        train_w_acc.append(w_acc)
         train_loss.append(train_instance_loss)
         train_accs.append(train_instance_acc)
 
@@ -256,7 +314,7 @@ def main(args):
             total_seen_class = [0 for _ in range(num_parts)]
             total_correct_class = [0 for _ in range(num_parts)]
             shape_ious = {cat: [] for cat in seg_classes.keys()}
-            seg_label_to_cat = {}  # {0:Airplane, 1:Airplane, ...49:Table}
+            seg_label_to_cat = {}  # {0:Tree, 1:Tree}
             w_acc = []
 
             for cat in seg_classes.keys():
@@ -293,7 +351,7 @@ def main(args):
                 total_correct += correct
                 total_seen += (cur_batch_size * NUM_POINT)
 
-                # weighted accuracy
+                # weighted accuracy for one batch
                 tp = np.sum(np.logical_and(target == 1, cur_pred_val == 1))
                 fn = np.sum(np.logical_and(target == 1, cur_pred_val == 0))
                 fp = np.sum(np.logical_and(target == 0, cur_pred_val == 1))
@@ -317,7 +375,7 @@ def main(args):
                         else:
                             part_ious[l - seg_classes[cat][0]] = np.sum((segl == l) & (segp == l)) / float(
                                 np.sum((segl == l) | (segp == l)))
-                    shape_ious[cat].append(np.mean(part_ious))
+                    shape_ious[cat].append(np.mean(part_ious))  # shape iou is unweighted average of iou of parts
 
             all_shape_ious = []
             for cat in shape_ious.keys():
@@ -332,10 +390,11 @@ def main(args):
                 log_string('eval mIoU of %s %f' % (cat + ' ' * (14 - len(cat)), shape_ious[cat]))
             test_metrics['class_avg_iou'] = mean_shape_ious
             test_metrics['inctance_avg_iou'] = np.mean(all_shape_ious)
+            test_metrics['w_acc'] = np.mean(w_acc)
 
-        w_acc = np.mean(w_acc)
-        log_string('Epoch %d test Accuracy: %f weighted accuracy: %f mIOU: %f' % (
-            epoch + 1, test_metrics['accuracy'], w_acc, test_metrics['class_avg_iou']))
+
+        log_string('Epoch %d test Accuracy: %f test weighted accuracy: %f mIOU: %f' % (
+            epoch + 1, test_metrics['accuracy'], test_metrics['w_acc'], test_metrics['class_avg_iou']))
 
         # append test acc and test loss of current epoch
         val_accs.append(np.round(test_metrics['accuracy'], 5))
@@ -369,8 +428,6 @@ def main(args):
         global_epoch += 1
 
     # save performance measures
-    performance_dir = exp_dir.joinpath('performance/')
-    performance_dir.mkdir(exist_ok=True)
     accs_path = str(performance_dir) + '/accs.npy'
     loss_path = str(performance_dir) + '/loss.npy'
     accs = np.array([train_accs, val_accs]).T
