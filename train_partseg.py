@@ -236,6 +236,10 @@ def main(args):
     START TRAINING
     '''
 
+    '''
+    START TRAINING
+    '''
+
     for epoch in range(start_epoch, args.epoch):
         mean_correct = []
         mean_loss = []
