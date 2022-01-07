@@ -12,6 +12,7 @@ import importlib
 import shutil
 import numpy as np
 import custom_functions.transform as t
+import provider
 
 
 from pathlib import Path
@@ -122,7 +123,6 @@ def main(args):
         testpath = "/valsplit.npy"
 
     traintransform = t.Compose([t.Normalize(),
-                                t.RandomDropout(),
                                 t.RandomScale(anisotropic=True, scale=[0.8, 1.2]),
                                 t.RandomRotate(),
                                 t.RandomFlip(),
@@ -222,7 +222,7 @@ def main(args):
         '''learning one epoch'''
         for i, (points, label, target) in tqdm(enumerate(trainDataLoader), total=len(trainDataLoader), smoothing=0.9):
             optimizer.zero_grad()
-
+            points, target = provider.random_point_dropout(points, target)
             points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
             points = points.transpose(2, 1)
 

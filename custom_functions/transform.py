@@ -139,7 +139,10 @@ class RandomJitter(object):
 
 class RandomDropout(object):
     """
-    randomly sets points to [0,0,0], a random ratio of points is selected with max_dropout_ratio as upper bound
+
+    WORKS ON BATCHES
+    randomly sets points to first point in dataset, a random ratio of points is selected with max_dropout_ratio
+    as upper bound. CAUTION: Do not apply before RandomJitter
     """
 
     def __init__(self, max_dropout_ratio=0.8):
@@ -150,4 +153,5 @@ class RandomDropout(object):
         npoints = np.round(dropout_ratio * len(points)).astype(int)
         drop_idx = np.random.choice(len(points), npoints, replace=False)
         points[drop_idx] = np.zeros((npoints, 3)) + points[0]
+        label[drop_idx] = None
         return points, label
