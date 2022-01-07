@@ -236,10 +236,6 @@ def main(args):
     START TRAINING
     '''
 
-    '''
-    START TRAINING
-    '''
-
     for epoch in range(start_epoch, args.epoch):
         mean_correct = []
         mean_loss = []
@@ -248,8 +244,8 @@ def main(args):
 
 
 
-        '''ADJUST TRAINING PARAMETERS'''
-        log_string('Epoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
+        '''adjust training parameters'''
+        log_string('\nEpoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
         '''Adjust learning rate and BN momentum'''
         lr = max(args.learning_rate * (args.lr_decay ** (epoch // args.step_size)), LEARNING_RATE_CLIP)
         log_string('Learning rate:%f' % lr)
@@ -258,7 +254,7 @@ def main(args):
         momentum = MOMENTUM_ORIGINAL * (MOMENTUM_DECCAY ** (epoch // MOMENTUM_DECCAY_STEP))
         if momentum < 0.01:
             momentum = 0.01
-        print('BN momentum updated to: %f' % momentum)
+        # print('BN momentum updated to: %f' % momentum)
         classifier = classifier.apply(lambda x: bn_momentum_adjust(x, momentum))
         classifier = classifier.train()
 
@@ -266,7 +262,7 @@ def main(args):
         for i, (points, label, target) in tqdm(enumerate(trainDataLoader), total=len(trainDataLoader), smoothing=0.9):
             optimizer.zero_grad()
 
-            points, target = provider.random_point_dropout(points, target)
+            points, target = provider.random_point_dropout(points, target) # this is different from test
             NUM_POINT = points.size()[1]
             points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
             points = points.transpose(2, 1)
@@ -276,18 +272,15 @@ def main(args):
             loss = criterion(seg_pred, target, trans_feat)
             mean_loss.append(loss.item())
 
-            # different from test
-            loss.backward()
-            optimizer.step()
+            loss.backward() # this is different from test
+            optimizer.step() # this is different from test
 
             pred_choice = seg_pred.data.max(1)[1]
             correct = pred_choice.eq(target.data).cpu().sum()
             mean_correct.append(correct.item() / (args.batch_size * NUM_POINT))
+
             pred_choice = pred_choice.cpu().numpy()
-            cur_pred_val = seg_pred.cpu().data.numpy()
             target = target.cpu().data.numpy()
-
-
 
             # weighted accuracy for batch
             tp = np.sum(np.logical_and(target == 1, pred_choice == 1))
@@ -297,30 +290,26 @@ def main(args):
 
             w_acc.append((tp / (tp + fn) + tn / (tn + fp)) / 2)
 
+            # iou for batch
             iou_tree = tp / (tp + fp + fn)
             iou_not_tree = tn / (tn + fn + fp)
             miou.append((iou_tree + iou_not_tree)/2)
 
+
+
         '''After one epoch, metrics aggregated over iterations'''
-        mean_shape_ious = np.mean(miou)
+        train_accs.append(np.round(np.mean(mean_correct), 5))
+        train_w_accs.append(np.round(np.mean(w_acc), 5))
+        train_loss.append(np.round(np.mean(mean_loss), 5))
+        train_miou.append(np.round(np.mean(miou), 5))
 
-        w_acc = np.mean(w_acc)
-        train_instance_acc = np.mean(mean_correct)
-        train_instance_acc = np.round(train_instance_acc, 5)
-        log_string('Train accuracy is: %.5f' % train_instance_acc)
-        train_instance_loss = np.mean(mean_loss)
-        train_instance_loss = np.round(train_instance_loss, 5)
-
-        # append train acc and train loss of current epoch
-        train_w_accs.append(w_acc)
-        train_loss.append(train_instance_loss)
-        train_accs.append(train_instance_acc)
-        train_miou.append(mean_shape_ious)
+        log_string('Epoch %d trainloss: %f, trainacc: %f, trainwacc: %f, mIOU: %f' % (
+            epoch + 1, train_loss[epoch], train_accs[epoch], train_w_accs[epoch], train_miou[epoch]
+        ))
 
 
 
-
-
+        '''validation set'''
         with torch.no_grad():
             mean_loss = []
             test_metrics = {}
@@ -334,6 +323,9 @@ def main(args):
 
             classifier = classifier.eval()
 
+
+
+            '''apply current model to validation set'''
             for batch_id, (points, label, target) in tqdm(enumerate(testDataLoader), total=len(testDataLoader), smoothing=0.9):
 
                 NUM_POINT = points.size()[1]
@@ -348,8 +340,8 @@ def main(args):
                 pred_choice = seg_pred.data.max(1)[1]
                 correct = pred_choice.eq(target.data).cpu().sum()
                 mean_correct.append(correct.item() / (args.batch_size * NUM_POINT))
+
                 pred_choice = pred_choice.cpu().numpy()
-                cur_pred_val = seg_pred.cpu().data.numpy()
                 target = target.cpu().data.numpy()
 
                 # weighted accuracy for batch
@@ -360,21 +352,21 @@ def main(args):
 
                 w_acc.append((tp / (tp + fn) + tn / (tn + fp)) / 2)
 
+                # iou for batch
                 iou_tree = tp / (tp + fp + fn)
                 iou_not_tree = tn / (tn + fn + fp)
                 miou.append((iou_tree + iou_not_tree) / 2)
 
-        accuracy = np.mean(mean_correct)
 
-        # append test acc and test loss of current epoch
-        val_accs.append(np.round(accuracy, 5))
-        val_loss.append(np.round(np.mean(mean_loss), 5))
-        val_miou.append(np.round(mean_shape_ious, 5))
+        '''After one epoch, metrics aggregated over iterations'''
+        val_accs.append(np.round(np.mean(mean_correct), 5))
         val_w_accs.append(np.round(np.mean(w_acc), 5))
+        val_loss.append(np.round(np.mean(mean_loss), 5))
+        val_miou.append(np.round(np.mean(miou), 5))
 
-
-        log_string('Epoch %d test Accuracy: %f test weighted accuracy: %f mIOU: %f' % (
-            epoch + 1, val_accs[epoch], val_w_accs[epoch], val_miou[epoch]))
+        log_string('Epoch %d testloss: %f, testacc: %f, testwacc: %f, mIOU: %f' % (
+            epoch + 1,val_loss[epoch], val_accs[epoch], val_w_accs[epoch], val_miou[epoch]
+        ))
 
         if val_w_accs[epoch] >= np.max(val_w_accs):
             logger.info('Save model...')
@@ -395,7 +387,9 @@ def main(args):
             }
             torch.save(state, savepath)
             log_string('Saving model....')
-        #
+
+        global_epoch += 1
+
         # if test_metrics['accuracy'] > best_acc:
         #     best_acc = test_metrics['accuracy']
         # if test_metrics['class_avg_iou'] > best_class_avg_iou:
@@ -405,7 +399,6 @@ def main(args):
         # log_string('Best accuracy is: %.5f' % best_acc)
         # log_string('Best class avg mIOU is: %.5f' % best_class_avg_iou)
         # log_string('Best inctance avg mIOU is: %.5f' % best_inctance_avg_iou)
-        global_epoch += 1
 
     # save performance measures
     accs_path = str(performance_dir) + '/accs.npy'
