@@ -255,7 +255,7 @@ def random_point_dropout(batch_points, batch_label, max_dropout_ratio=0.8):
     :return: batch_points and batch_labels with reduced Ns
     '''
     dropout_ratio = np.random.random() * max_dropout_ratio
-    npoints = np.round(dropout_ratio * len(batch_points[0])).astype(int)
+    npoints = batch_points.shape[1] - np.round(dropout_ratio * len(batch_points[0])).astype(int)
     keep_idx = np.random.choice(len(batch_points[0]), npoints, replace=False)
     batch_points = batch_points[:, keep_idx, :]
     batch_label = batch_label[:, keep_idx]

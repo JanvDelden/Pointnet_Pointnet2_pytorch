@@ -24,7 +24,7 @@ ROOT_DIR = BASE_DIR
 sys.path.append(os.path.join(ROOT_DIR, 'models'))
 
 seg_classes = {'Tree': [0, 1]}
-seg_label_to_cat = {}  # {0:Airplane, 1:Airplane, ...49:Table}
+seg_label_to_cat = {}
 for cat in seg_classes.keys():
     for label in seg_classes[cat]:
         seg_label_to_cat[label] = cat
@@ -34,6 +34,7 @@ def inplace_relu(m):
     classname = m.__class__.__name__
     if classname.find('ReLU') != -1:
         m.inplace=True
+
 
 def to_categorical(y, num_classes):
     """ 1-hot encodes a tensor """
@@ -57,6 +58,7 @@ def parse_args():
     parser.add_argument('--normal', action='store_true', default=False, help='use normals')
     parser.add_argument('--step_size', type=int, default=20, help='decay step for lr decay')
     parser.add_argument('--lr_decay', type=float, default=0.5, help='decay rate for lr decay')
+    parser.add_argument('--weight', type=float, default=5.2, help='weight to be applied to loss of tree points')
 
     return parser.parse_args()
 
@@ -85,6 +87,9 @@ def main(args):
     log_dir = exp_dir.joinpath('logs/')
     log_dir.mkdir(exist_ok=True)
 
+    performance_dir = exp_dir.joinpath('performance/')
+    performance_dir.mkdir(exist_ok=True)
+
     '''LOG'''
     args = parse_args()
     logger = logging.getLogger("Model")
@@ -97,8 +102,10 @@ def main(args):
     log_string('PARAMETER ...')
     log_string(args)
 
+    '''DEFINE DEVICE FOR TRAINING AND OTHER DATA RELATED STUFF'''
     use_cuda = torch.cuda.is_available()
     device = torch.device('cuda:0' if use_cuda else 'cpu')
+
     if use_cuda:
         # define paths where split information is located for dataset
         root = '/content/Pointnet_Pointnet2_pytorch/data'
@@ -117,11 +124,12 @@ def main(args):
         np.save(trainsplit_path, trainsplit)
         np.save(testsplit_path, testsplit)
     else:
-        root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
-        # root = "G:/Meine Ablage/Colab/tree_learning/data/chunks"
+        #root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
+        root = "G:/Meine Ablage/Colab/tree_learning/data/chunks"
         trainpath = "/trainsplit.npy"
         testpath = "/valsplit.npy"
 
+    '''TRANSFORMATIONS TO BE APPLIED DURING TRAINING AND TEST TIME'''
     traintransform = t.Compose([t.Normalize(),
                                 t.RandomScale(anisotropic=True, scale=[0.8, 1.2]),
                                 t.RandomRotate(),
@@ -144,7 +152,7 @@ def main(args):
     shutil.copy('models/%s.py' % args.model, str(exp_dir))
     shutil.copy('models/pointnet2_utils.py', str(exp_dir))
 
-    weights = torch.tensor([1, 4])
+    weights = torch.tensor([1, args.weight])
     weights = weights.to(device)
     weights = weights.float()
 
@@ -166,10 +174,38 @@ def main(args):
         start_epoch = checkpoint['epoch']
         classifier.load_state_dict(checkpoint['model_state_dict'])
         log_string('Use pretrain model')
+
+        # train metrics
+        train_accs = checkpoint['train_accs']
+        train_w_accs = checkpoint['train_w_accs']
+        train_loss = checkpoint['train_loss']
+        train_miou = checkpoint['train_miou']
+
+        # val metrics
+        val_accs = checkpoint['val_accs']
+        val_w_accs = checkpoint['val_w_accs']
+        val_loss = checkpoint['val_loss']
+        val_miou = checkpoint['val_miou']
+
+
     except:
         log_string('No existing model, starting training from scratch...')
         start_epoch = 0
         classifier = classifier.apply(weights_init)
+
+        # train metrics
+        train_accs = []
+        train_w_accs = []
+        train_loss = []
+        train_miou = []
+
+        # val metrics
+        val_accs = []
+        val_w_accs = []
+        val_loss = []
+        val_miou = []
+
+
 
     if args.optimizer == 'Adam':
         optimizer = torch.optim.Adam(
@@ -196,16 +232,19 @@ def main(args):
     best_class_avg_iou = 0
     best_inctance_avg_iou = 0
 
-    train_accs = []
-    train_loss = []
-    val_accs = []
-    val_loss = []
+    '''
+    START TRAINING
+    '''
 
     for epoch in range(start_epoch, args.epoch):
         mean_correct = []
         mean_loss = []
         w_acc = []
+        miou = []
 
+
+
+        '''ADJUST TRAINING PARAMETERS'''
         log_string('Epoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
         '''Adjust learning rate and BN momentum'''
         lr = max(args.learning_rate * (args.lr_decay ** (epoch // args.step_size)), LEARNING_RATE_CLIP)
@@ -222,22 +261,46 @@ def main(args):
         '''learning one epoch'''
         for i, (points, label, target) in tqdm(enumerate(trainDataLoader), total=len(trainDataLoader), smoothing=0.9):
             optimizer.zero_grad()
+
             points, target = provider.random_point_dropout(points, target)
+            NUM_POINT = points.size()[1]
             points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
             points = points.transpose(2, 1)
-
             seg_pred, trans_feat = classifier(points, to_categorical(label, num_classes))
             seg_pred = seg_pred.contiguous().view(-1, num_parts)
             target = target.view(-1, 1)[:, 0]
-            pred_choice = seg_pred.data.max(1)[1]
-
-            correct = pred_choice.eq(target.data).cpu().sum()
-            mean_correct.append(correct.item() / (args.batch_size * args.npoint))
             loss = criterion(seg_pred, target, trans_feat)
-            loss.backward()
             mean_loss.append(loss.item())
+
+            # different from test
+            loss.backward()
             optimizer.step()
 
+            pred_choice = seg_pred.data.max(1)[1]
+            correct = pred_choice.eq(target.data).cpu().sum()
+            mean_correct.append(correct.item() / (args.batch_size * NUM_POINT))
+            pred_choice = pred_choice.cpu().numpy()
+            cur_pred_val = seg_pred.cpu().data.numpy()
+            target = target.cpu().data.numpy()
+
+
+
+            # weighted accuracy for batch
+            tp = np.sum(np.logical_and(target == 1, pred_choice == 1))
+            fn = np.sum(np.logical_and(target == 1, pred_choice == 0))
+            fp = np.sum(np.logical_and(target == 0, pred_choice == 1))
+            tn = np.sum(np.logical_and(target == 0, pred_choice == 0))
+
+            w_acc.append((tp / (tp + fn) + tn / (tn + fp)) / 2)
+
+            iou_tree = tp / (tp + fp + fn)
+            iou_not_tree = tn / (tn + fn + fp)
+            miou.append((iou_tree + iou_not_tree)/2)
+
+        '''After one epoch, metrics aggregated over iterations'''
+        mean_shape_ious = np.mean(miou)
+
+        w_acc = np.mean(w_acc)
         train_instance_acc = np.mean(mean_correct)
         train_instance_acc = np.round(train_instance_acc, 5)
         log_string('Train accuracy is: %.5f' % train_instance_acc)
@@ -245,8 +308,14 @@ def main(args):
         train_instance_loss = np.round(train_instance_loss, 5)
 
         # append train acc and train loss of current epoch
+        train_w_accs.append(w_acc)
         train_loss.append(train_instance_loss)
         train_accs.append(train_instance_acc)
+        train_miou.append(mean_shape_ious)
+
+
+
+
 
         with torch.no_grad():
             mean_loss = []
@@ -256,127 +325,97 @@ def main(args):
             total_seen_class = [0 for _ in range(num_parts)]
             total_correct_class = [0 for _ in range(num_parts)]
             shape_ious = {cat: [] for cat in seg_classes.keys()}
-            seg_label_to_cat = {}  # {0:Airplane, 1:Airplane, ...49:Table}
             w_acc = []
-
-            for cat in seg_classes.keys():
-                for label in seg_classes[cat]:
-                    seg_label_to_cat[label] = cat
+            miou = []
 
             classifier = classifier.eval()
 
             for batch_id, (points, label, target) in tqdm(enumerate(testDataLoader), total=len(testDataLoader), smoothing=0.9):
-                cur_batch_size, NUM_POINT, _ = points.size()
+
+                NUM_POINT = points.size()[1]
                 points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
                 points = points.transpose(2, 1)
                 seg_pred, trans_feat = classifier(points, to_categorical(label, num_classes))
-
-                # calculate loss
-                seg_pred2 = seg_pred.clone()
-                seg_pred2 = seg_pred2.contiguous().view(-1, num_parts)
-                target2 = target.clone()
-                target2 = target2.view(-1, 1)[:, 0]
-                loss = criterion(seg_pred2, target2, trans_feat)
+                seg_pred = seg_pred.contiguous().view(-1, num_parts)
+                target = target.view(-1, 1)[:, 0]
+                loss = criterion(seg_pred, target, trans_feat)
                 mean_loss.append(loss.item())
 
+                pred_choice = seg_pred.data.max(1)[1]
+                correct = pred_choice.eq(target.data).cpu().sum()
+                mean_correct.append(correct.item() / (args.batch_size * NUM_POINT))
+                pred_choice = pred_choice.cpu().numpy()
                 cur_pred_val = seg_pred.cpu().data.numpy()
-                cur_pred_val_logits = cur_pred_val
-                cur_pred_val = np.zeros((cur_batch_size, NUM_POINT)).astype(np.int32)
                 target = target.cpu().data.numpy()
 
-                for i in range(cur_batch_size):
-                    cat = seg_label_to_cat[target[i, 0]]
-                    logits = cur_pred_val_logits[i, :, :]
-                    cur_pred_val[i, :] = np.argmax(logits[:, seg_classes[cat]], 1) + seg_classes[cat][0]
+                # weighted accuracy for batch
+                tp = np.sum(np.logical_and(target == 1, pred_choice == 1))
+                fn = np.sum(np.logical_and(target == 1, pred_choice == 0))
+                fp = np.sum(np.logical_and(target == 0, pred_choice == 1))
+                tn = np.sum(np.logical_and(target == 0, pred_choice == 0))
 
-                correct = np.sum(cur_pred_val == target)
-                total_correct += correct
-                total_seen += (cur_batch_size * NUM_POINT)
+                w_acc.append((tp / (tp + fn) + tn / (tn + fp)) / 2)
 
-                # weighted accuracy
-                tp = np.sum(np.logical_and(target == 1, cur_pred_val == 1))
-                fn = np.sum(np.logical_and(target == 1, cur_pred_val == 0))
-                fp = np.sum(np.logical_and(target == 0, cur_pred_val == 1))
-                tn = np.sum(np.logical_and(target == 0, cur_pred_val == 0))
+                iou_tree = tp / (tp + fp + fn)
+                iou_not_tree = tn / (tn + fn + fp)
+                miou.append((iou_tree + iou_not_tree) / 2)
 
-                w_acc.append((tp / (tp+fn) + tn / (tn+fp)) / 2)
-
-                for l in range(num_parts):
-                    total_seen_class[l] += np.sum(target == l)
-                    total_correct_class[l] += (np.sum((cur_pred_val == l) & (target == l)))
-
-                for i in range(cur_batch_size):
-                    segp = cur_pred_val[i, :]
-                    segl = target[i, :]
-                    cat = seg_label_to_cat[segl[0]]
-                    part_ious = [0.0 for _ in range(len(seg_classes[cat]))]
-                    for l in seg_classes[cat]:
-                        if (np.sum(segl == l) == 0) and (
-                                np.sum(segp == l) == 0):  # part is not present, no prediction as well
-                            part_ious[l - seg_classes[cat][0]] = 1.0
-                        else:
-                            part_ious[l - seg_classes[cat][0]] = np.sum((segl == l) & (segp == l)) / float(
-                                np.sum((segl == l) | (segp == l)))
-                    shape_ious[cat].append(np.mean(part_ious))
-
-            all_shape_ious = []
-            for cat in shape_ious.keys():
-                for iou in shape_ious[cat]:
-                    all_shape_ious.append(iou)
-                shape_ious[cat] = np.mean(shape_ious[cat])
-            mean_shape_ious = np.mean(list(shape_ious.values()))
-            test_metrics['accuracy'] = total_correct / float(total_seen)
-            test_metrics['class_avg_accuracy'] = np.mean(
-                np.array(total_correct_class) / np.array(total_seen_class, dtype=np.float))
-            for cat in sorted(shape_ious.keys()):
-                log_string('eval mIoU of %s %f' % (cat + ' ' * (14 - len(cat)), shape_ious[cat]))
-            test_metrics['class_avg_iou'] = mean_shape_ious
-            test_metrics['inctance_avg_iou'] = np.mean(all_shape_ious)
-
-        w_acc = np.mean(w_acc)
-        log_string('Epoch %d test Accuracy: %f weighted accuracy: %f mIOU: %f' % (
-            epoch + 1, test_metrics['accuracy'], w_acc, test_metrics['class_avg_iou']))
+        accuracy = np.mean(mean_correct)
 
         # append test acc and test loss of current epoch
-        val_accs.append(np.round(test_metrics['accuracy'], 5))
+        val_accs.append(np.round(accuracy, 5))
         val_loss.append(np.round(np.mean(mean_loss), 5))
+        val_miou.append(np.round(mean_shape_ious, 5))
+        val_w_accs.append(np.round(np.mean(w_acc), 5))
 
-        if test_metrics['inctance_avg_iou'] >= best_inctance_avg_iou:
+
+        log_string('Epoch %d test Accuracy: %f test weighted accuracy: %f mIOU: %f' % (
+            epoch + 1, val_accs[epoch], val_w_accs[epoch], val_miou[epoch]))
+
+        if val_w_accs[epoch] >= np.max(val_w_accs):
             logger.info('Save model...')
             savepath = str(checkpoints_dir) + '/best_model.pth'
             log_string('Saving at %s' % savepath)
             state = {
-                'epoch': epoch,
-                'train_acc': train_instance_acc,
-                'test_acc': test_metrics['accuracy'],
-                'class_avg_iou': test_metrics['class_avg_iou'],
-                'inctance_avg_iou': test_metrics['inctance_avg_iou'],
+                'epoch': epoch+1,
+                'train_accs': train_accs,
+                'train_loss': train_loss,
+                'train_w_accs': train_w_accs,
+                'train_miou': train_miou,
+                'val_accs': val_accs,
+                'val_w_accs': val_w_accs,
+                'val_miou': val_miou,
+                'val_loss': val_loss,
                 'model_state_dict': classifier.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
             }
             torch.save(state, savepath)
             log_string('Saving model....')
-
-        if test_metrics['accuracy'] > best_acc:
-            best_acc = test_metrics['accuracy']
-        if test_metrics['class_avg_iou'] > best_class_avg_iou:
-            best_class_avg_iou = test_metrics['class_avg_iou']
-        if test_metrics['inctance_avg_iou'] > best_inctance_avg_iou:
-            best_inctance_avg_iou = test_metrics['inctance_avg_iou']
-        log_string('Best accuracy is: %.5f' % best_acc)
-        log_string('Best class avg mIOU is: %.5f' % best_class_avg_iou)
-        log_string('Best inctance avg mIOU is: %.5f' % best_inctance_avg_iou)
+        #
+        # if test_metrics['accuracy'] > best_acc:
+        #     best_acc = test_metrics['accuracy']
+        # if test_metrics['class_avg_iou'] > best_class_avg_iou:
+        #     best_class_avg_iou = test_metrics['class_avg_iou']
+        # if test_metrics['inctance_avg_iou'] > best_inctance_avg_iou:
+        #     best_inctance_avg_iou = test_metrics['inctance_avg_iou']
+        # log_string('Best accuracy is: %.5f' % best_acc)
+        # log_string('Best class avg mIOU is: %.5f' % best_class_avg_iou)
+        # log_string('Best inctance avg mIOU is: %.5f' % best_inctance_avg_iou)
         global_epoch += 1
 
     # save performance measures
-    performance_dir = exp_dir.joinpath('performance/')
-    performance_dir.mkdir(exist_ok=True)
     accs_path = str(performance_dir) + '/accs.npy'
+    w_accs_path = str(performance_dir) + '/w_accs.npy'
     loss_path = str(performance_dir) + '/loss.npy'
+    mious_path = str(performance_dir) + '/mious.npy'
     accs = np.array([train_accs, val_accs]).T
     loss = np.array([train_loss, val_loss]).T
+    w_accs = np.array([train_w_accs, val_w_accs]).T
+    mious = np.array([train_miou, val_miou]).T
     np.save(accs_path, accs)
+    np.save(w_accs_path, w_accs)
     np.save(loss_path, loss)
+    np.save(mious_path, mious)
 
 if __name__ == '__main__':
     args = parse_args()

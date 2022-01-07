@@ -4,9 +4,11 @@ import torch.nn.functional as F
 from time import time
 import numpy as np
 
+
 def timeit(tag, t):
     print("{}: {}s".format(tag, time() - t))
     return time()
+
 
 def pc_normalize(pc):
     l = pc.shape[0]
@@ -15,6 +17,7 @@ def pc_normalize(pc):
     m = np.max(np.sqrt(np.sum(pc**2, axis=1)))
     pc = pc / m
     return pc
+
 
 def square_distance(src, dst):
     """
