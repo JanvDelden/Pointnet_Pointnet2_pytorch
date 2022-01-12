@@ -95,4 +95,3 @@ class get_loss(nn.Module):
             total_loss = F.nll_loss(pred, target, weight=self.weights)
 
         return total_loss
-    
