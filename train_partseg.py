@@ -46,7 +46,7 @@ def to_categorical(y, num_classes):
 
 def parse_args():
     parser = argparse.ArgumentParser('Model')
-    parser.add_argument('--model', type=str, default='pointnet_2_2', help='model name')
+    parser.add_argument('--model', type=str, default='pointnet2_part_seg_msg', help='model name')
     parser.add_argument('--batch_size', type=int, default=16, help='batch Size during training')
     parser.add_argument('--epoch', default=251, type=int, help='epoch to run')
     parser.add_argument('--learning_rate', default=0.001, type=float, help='initial learning rate')
@@ -65,6 +65,7 @@ def parse_args():
 
 
 def main(args):
+
     def log_string(str):
         logger.info(str)
         print(str)
@@ -158,7 +159,7 @@ def main(args):
     weights = weights.float()
 
     classifier = MODEL.get_model(num_parts, num_classes, normal_channel=args.normal).to(device)
-    criterion = MODEL.get_loss(weights=weights, batch_size=args.batch_size, adaptive=args.adaptive)
+    criterion = MODEL.get_loss(weights=weights, batch_size=args.batch_size, adaptive=args.adaptive, device=device)
     classifier.apply(inplace_relu)
 
     def weights_init(m):

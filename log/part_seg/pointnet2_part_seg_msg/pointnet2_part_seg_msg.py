@@ -68,17 +68,17 @@ class get_model(nn.Module):
 
 
 class get_loss(nn.Module):
-    def __init__(self, weights, num_points, batch_size, adaptive):
+    def __init__(self, weights, batch_size, adaptive, device):
         super(get_loss, self).__init__()
         self.weights = weights
-        self.num_points = num_points
         self.batch_size = batch_size
         self.adaptive = adaptive
+        self.device = device
 
 
-    def forward(self, pred, target, trans_feat):
+    def forward(self, pred, target, trans_feat, num_points):
         start = 0
-        stop = self.num_points
+        stop = num_points
         total_loss = 0
 
         if self.adaptive:
@@ -86,11 +86,11 @@ class get_loss(nn.Module):
                 temp = target[start:stop]
                 frac_tree = torch.sum(temp) / len(temp)
                 weights = torch.tensor([1, (1-frac_tree)/frac_tree])
-                weights = weights.cuda()
+                weights = weights.to(self.device)
                 weights = weights.float()
                 total_loss += F.nll_loss(pred[start:stop], temp, weight=weights)
-                start += self.num_points
-                stop += self.num_points
+                start += num_points
+                stop += num_points
         else:
             total_loss = F.nll_loss(pred, target, weight=self.weights)
 
