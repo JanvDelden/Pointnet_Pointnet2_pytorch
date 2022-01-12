@@ -3133,3 +3133,35 @@ Epoch 2 (10/10):
 2022-01-07 21:42:54,313 - Model - INFO - Learning rate:0.001000
 2022-01-07 21:46:01,112 - Model - INFO - Epoch 10 trainloss: 0.315340, trainacc: 0.858100, trainwacc: 0.871720, mIOU: 0.658660
 2022-01-07 21:47:11,843 - Model - INFO - Epoch 10 testloss: 0.362590, testacc: 0.768060, testwacc: 0.814540, mIOU: 0.507510
+2022-01-12 18:18:58,700 - Model - INFO - PARAMETER ...
+2022-01-12 18:18:58,702 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=10, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5, weight=5.2, adaptive=False)
+2022-01-12 18:18:58,766 - Model - INFO - The number of training data is: 150
+2022-01-12 18:18:58,766 - Model - INFO - The number of test data is: 105
+2022-01-12 18:18:58,906 - Model - INFO - Use pretrain model
+2022-01-12 18:18:58,914 - Model - INFO - 
+Epoch 1 (9/10):
+2022-01-12 18:18:58,914 - Model - INFO - Learning rate:0.001000
+2022-01-12 18:19:38,005 - Model - INFO - PARAMETER ...
+2022-01-12 18:19:38,005 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=10, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5, weight=5.2, adaptive=False)
+2022-01-12 18:19:38,043 - Model - INFO - The number of training data is: 150
+2022-01-12 18:19:38,043 - Model - INFO - The number of test data is: 105
+2022-01-12 18:19:38,106 - Model - INFO - Use pretrain model
+2022-01-12 18:19:38,106 - Model - INFO - 
+Epoch 1 (9/10):
+2022-01-12 18:19:38,106 - Model - INFO - Learning rate:0.001000
+2022-01-12 18:28:21,183 - Model - INFO - PARAMETER ...
+2022-01-12 18:28:21,183 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=10, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5, weight=5.2, adaptive=False)
+2022-01-12 18:28:21,229 - Model - INFO - The number of training data is: 150
+2022-01-12 18:28:21,229 - Model - INFO - The number of test data is: 105
+2022-01-12 18:28:21,330 - Model - INFO - Use pretrain model
+2022-01-12 18:28:21,330 - Model - INFO - 
+Epoch 1 (9/10):
+2022-01-12 18:28:21,330 - Model - INFO - Learning rate:0.001000
+2022-01-12 18:28:56,688 - Model - INFO - PARAMETER ...
+2022-01-12 18:28:56,688 - Model - INFO - Namespace(model='pointnet2_part_seg_msg', batch_size=16, epoch=10, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_part_seg_msg', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5, weight=5.2, adaptive=False)
+2022-01-12 18:28:56,726 - Model - INFO - The number of training data is: 150
+2022-01-12 18:28:56,726 - Model - INFO - The number of test data is: 105
+2022-01-12 18:28:56,788 - Model - INFO - Use pretrain model
+2022-01-12 18:28:56,788 - Model - INFO - 
+Epoch 1 (9/10):
+2022-01-12 18:28:56,788 - Model - INFO - Learning rate:0.001000
