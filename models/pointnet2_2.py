@@ -97,6 +97,8 @@ class get_loss(nn.Module):
                 total_loss += F.nll_loss(pred[start:stop], temp, weight=weights)
                 start += num_points
                 stop += num_points
+
+            total_loss = total_loss / self.batch_size
         else:
             total_loss = F.nll_loss(pred, target, weight=self.weights)
 
