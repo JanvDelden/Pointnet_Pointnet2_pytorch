@@ -17,10 +17,12 @@ def gen_split(percentages=(0.5, 0.2),
               paths=("/content/Pointnet_Pointnet2_pytorch/data/trainsplit.npy",
                      "/content/Pointnet_Pointnet2_pytorch/data/valsplit.npy"),
               sample_number=255,
-              shuffle=True):
+              shuffle=True,
+              seed=1):
     import random
     import numpy as np
     if shuffle:
+        random.seed(seed)
         indices = range(sample_number)
         indices = np.array(random.sample(indices, sample_number))
     else:

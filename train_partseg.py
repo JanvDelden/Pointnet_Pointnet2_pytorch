@@ -59,6 +59,7 @@ def parse_args():
     parser.add_argument('--step_size', type=int, default=20, help='decay step for lr decay')
     parser.add_argument('--lr_decay', type=float, default=0.5, help='decay rate for lr decay')
     parser.add_argument('--weight', type=float, default=5.2, help='weight to be applied to loss of tree points')
+    parser.add_argument('--adaptive', action='store_true', default=False, help='use adaptive loss weights')
 
     return parser.parse_args()
 
@@ -157,7 +158,7 @@ def main(args):
     weights = weights.float()
 
     classifier = MODEL.get_model(num_parts, num_classes, normal_channel=args.normal).to(device)
-    criterion = MODEL.get_loss(weights=weights)
+    criterion = MODEL.get_loss(weights=weights, num_points=args.npoint, batch_size=args.batch_size, adaptive=args.adaptive)
     classifier.apply(inplace_relu)
 
     def weights_init(m):
