@@ -260,6 +260,6 @@ def random_point_dropout(batch_points, batch_label, max_dropout_ratio=0.8):
     batch_points = batch_points[:, keep_idx, :]
     batch_label = batch_label[:, keep_idx]
 
-    return batch_points, batch_label
+    return batch_points, batch_label, npoints
 
 

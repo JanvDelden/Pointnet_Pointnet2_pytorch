@@ -46,7 +46,7 @@ def to_categorical(y, num_classes):
 
 def parse_args():
     parser = argparse.ArgumentParser('Model')
-    parser.add_argument('--model', type=str, default='pointnet_part_seg', help='model name')
+    parser.add_argument('--model', type=str, default='pointnet_2_2', help='model name')
     parser.add_argument('--batch_size', type=int, default=16, help='batch Size during training')
     parser.add_argument('--epoch', default=251, type=int, help='epoch to run')
     parser.add_argument('--learning_rate', default=0.001, type=float, help='initial learning rate')
@@ -158,7 +158,8 @@ def main(args):
     weights = weights.float()
 
     classifier = MODEL.get_model(num_parts, num_classes, normal_channel=args.normal).to(device)
-    criterion = MODEL.get_loss(weights=weights, num_points=args.npoint, batch_size=args.batch_size, adaptive=args.adaptive)
+    args.adaptive = True
+    criterion = MODEL.get_loss(weights=weights, batch_size=args.batch_size, adaptive=args.adaptive)
     classifier.apply(inplace_relu)
 
     def weights_init(m):
@@ -263,14 +264,14 @@ def main(args):
         for i, (points, label, target) in tqdm(enumerate(trainDataLoader), total=len(trainDataLoader), smoothing=0.9):
             optimizer.zero_grad()
 
-            points, target = provider.random_point_dropout(points, target) # this is different from test
+            points, target, n_sampled_points = provider.random_point_dropout(points, target) # this is different from test
             NUM_POINT = points.size()[1]
             points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
             points = points.transpose(2, 1)
             seg_pred, trans_feat = classifier(points, to_categorical(label, num_classes))
             seg_pred = seg_pred.contiguous().view(-1, num_parts)
             target = target.view(-1, 1)[:, 0]
-            loss = criterion(seg_pred, target, trans_feat)
+            loss = criterion(seg_pred, target, trans_feat, n_sampled_points)
             mean_loss.append(loss.item())
 
             loss.backward() # this is different from test
@@ -331,7 +332,7 @@ def main(args):
                 seg_pred, trans_feat = classifier(points, to_categorical(label, num_classes))
                 seg_pred = seg_pred.contiguous().view(-1, num_parts)
                 target = target.view(-1, 1)[:, 0]
-                loss = criterion(seg_pred, target, trans_feat)
+                loss = criterion(seg_pred, target, trans_feat, args.npoint)
                 mean_loss.append(loss.item())
 
                 pred_choice = seg_pred.data.max(1)[1]
