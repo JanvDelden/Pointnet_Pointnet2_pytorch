@@ -158,7 +158,6 @@ def main(args):
     weights = weights.float()
 
     classifier = MODEL.get_model(num_parts, num_classes, normal_channel=args.normal).to(device)
-    args.adaptive = True
     criterion = MODEL.get_loss(weights=weights, batch_size=args.batch_size, adaptive=args.adaptive)
     classifier.apply(inplace_relu)
 
