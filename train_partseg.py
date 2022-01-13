@@ -175,7 +175,6 @@ def main(args):
         checkpoint = torch.load(str(exp_dir) + '/checkpoints/best_model.pth')
         start_epoch = checkpoint['epoch']
         classifier.load_state_dict(checkpoint['model_state_dict'])
-        log_string('Use pretrain model')
 
         # train metrics
         train_accs = checkpoint['train_accs']
@@ -192,10 +191,8 @@ def main(args):
         val_no_tree_accs = checkpoint['val_no_tree_accs']
         val_loss = checkpoint['val_loss']
         val_miou = checkpoint['val_miou']
-        val_tree_accs = []
-        val_no_tree_accs = []
-        train_tree_accs = []
-        train_no_tree_accs = []
+
+        log_string('Use pretrain model')
 
     except:
         log_string('No existing model, starting training from scratch...')
