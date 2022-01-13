@@ -267,21 +267,21 @@ def main(args):
             optimizer.zero_grad()
 
             points, target, n_sampled_points = provider.random_point_dropout(points, target)  # this is different from test
-            NUM_POINT = points.size()[1]
+            cur_batch_size = points.size()[0]
             points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
             points = points.transpose(2, 1)
             seg_pred, trans_feat = classifier(points, to_categorical(label, num_classes))
             seg_pred = seg_pred.contiguous().view(-1, num_parts)
             target = target.view(-1, 1)[:, 0]
-            loss = criterion(seg_pred, target, trans_feat, n_sampled_points)
+            loss = criterion(seg_pred, target, trans_feat, n_sampled_points, cur_batch_size)
             mean_loss.append(loss.item())
 
-            loss.backward() # this is different from test
-            optimizer.step() # this is different from test
+            loss.backward()  # this is different from test
+            optimizer.step()  # this is different from test
 
             pred_choice = seg_pred.data.max(1)[1]
             correct = pred_choice.eq(target.data).cpu().sum()
-            mean_correct.append(correct.item() / (args.batch_size * NUM_POINT))
+            mean_correct.append(correct.item() / (cur_batch_size * n_sampled_points))  # change due to dropout
 
             pred_choice = pred_choice.cpu().numpy()
             target = target.cpu().data.numpy()
@@ -327,18 +327,18 @@ def main(args):
             '''apply current model to validation set'''
             for batch_id, (points, label, target) in tqdm(enumerate(testDataLoader), total=len(testDataLoader), smoothing=0.9):
 
-                NUM_POINT = points.size()[1]
+                cur_batch_size = points.size()[0]
                 points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
                 points = points.transpose(2, 1)
                 seg_pred, trans_feat = classifier(points, to_categorical(label, num_classes))
                 seg_pred = seg_pred.contiguous().view(-1, num_parts)
                 target = target.view(-1, 1)[:, 0]
-                loss = criterion(seg_pred, target, trans_feat, args.npoint)
+                loss = criterion(seg_pred, target, trans_feat, args.npoint, cur_batch_size)
                 mean_loss.append(loss.item())
 
                 pred_choice = seg_pred.data.max(1)[1]
                 correct = pred_choice.eq(target.data).cpu().sum()
-                mean_correct.append(correct.item() / (args.batch_size * NUM_POINT))
+                mean_correct.append(correct.item() / (cur_batch_size * args.npoint))
 
                 pred_choice = pred_choice.cpu().numpy()
                 target = target.cpu().data.numpy()
