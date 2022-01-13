@@ -76,14 +76,13 @@ class get_loss(nn.Module):
         self.adaptive = adaptive
         self.device = device
 
-
-    def forward(self, pred, target, trans_feat, num_points):
+    def forward(self, pred, target, trans_feat, num_points, cur_batch_size):
         start = 0
         stop = num_points
         total_loss = 0
 
         if self.adaptive:
-            for i in range(self.batch_size):
+            for i in range(cur_batch_size):
                 frac_tree = torch.sum(target[start:stop]) / len(target[start:stop])
                 weights = torch.tensor([1, (1-frac_tree)/frac_tree])
                 weights = weights.to(self.device)
