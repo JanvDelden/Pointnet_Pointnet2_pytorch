@@ -126,8 +126,8 @@ def main(args):
         np.save(trainsplit_path, trainsplit)
         np.save(testsplit_path, testsplit)
     else:
-        root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
-        # root = "G:/Meine Ablage/Colab/tree_learning/data/chunks"
+        # root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
+        root = "G:/Meine Ablage/Colab/tree_learning/data/chunks"
         trainpath = "/trainsplit.npy"
         testpath = "/valsplit.npy"
 
@@ -180,12 +180,16 @@ def main(args):
         # train metrics
         train_accs = checkpoint['train_accs']
         train_w_accs = checkpoint['train_w_accs']
+        train_tree_accs = checkpoint['train_tree_accs']
+        train_no_tree_accs = checkpoint['train_no_tree_accs']
         train_loss = checkpoint['train_loss']
         train_miou = checkpoint['train_miou']
 
         # val metrics
         val_accs = checkpoint['val_accs']
         val_w_accs = checkpoint['val_w_accs']
+        val_tree_accs = checkpoint['val_tree_accs']
+        val_no_tree_accs = checkpoint['val_no_tree_accs']
         val_loss = checkpoint['val_loss']
         val_miou = checkpoint['val_miou']
         val_tree_accs = []
@@ -310,8 +314,8 @@ def main(args):
         train_miou.append(np.round(np.mean(miou), 5))
 
         log_string('Epoch %d trainloss: %f, trainacc: %f, trainwacc: %f, testacctree: %f, testaccnotree: %f, mIOU: %f' % (
-            epoch + 1, train_loss[-1], train_accs[-1], train_w_accs[-1],
-            train_tree_accs[-1], train_no_tree_accs[-1], train_miou[-1]
+            epoch + 1, train_loss[epoch], train_accs[epoch], train_w_accs[epoch],
+            train_tree_accs[epoch], train_no_tree_accs[epoch], train_miou[epoch]
         ))
 
         '''validation set'''
@@ -367,11 +371,11 @@ def main(args):
         val_miou.append(np.round(np.mean(miou), 5))
 
         log_string('Epoch %d testloss: %f, testacc: %f, testwacc: %f, testacctree: %f, testaccnotree: %f, testmIOU: %f' % (
-            epoch + 1, val_loss[-1], val_accs[-1], val_w_accs[-1],
-            val_tree_accs[-1], val_no_tree_accs[-1], val_miou[-1]
+            epoch + 1, val_loss[epoch], val_accs[epoch], val_w_accs[epoch],
+            val_tree_accs[epoch], val_no_tree_accs[epoch], val_miou[epoch]
         ))
 
-        if val_w_accs[-1] >= np.max(val_w_accs):
+        if val_w_accs[epoch] >= np.max(val_w_accs):
             logger.info('Save model...')
             savepath = str(checkpoints_dir) + '/best_model.pth'
             log_string('Saving at %s' % savepath)
@@ -380,9 +384,13 @@ def main(args):
                 'train_accs': train_accs,
                 'train_loss': train_loss,
                 'train_w_accs': train_w_accs,
+                'train_tree_accs': train_tree_accs,
+                'train_no_tree_accs': train_no_tree_accs,
                 'train_miou': train_miou,
                 'val_accs': val_accs,
                 'val_w_accs': val_w_accs,
+                'val_tree_accs': val_tree_accs,
+                'val_no_tree_accs': val_no_tree_accs,
                 'val_miou': val_miou,
                 'val_loss': val_loss,
                 'model_state_dict': classifier.state_dict(),
