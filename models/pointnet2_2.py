@@ -81,7 +81,6 @@ class get_loss(nn.Module):
         self.adaptive = adaptive
         self.device = device
 
-
     def forward(self, pred, target, trans_feat, num_points):
         start = 0
         stop = num_points

@@ -33,12 +33,12 @@ for cat in seg_classes.keys():
 def inplace_relu(m):
     classname = m.__class__.__name__
     if classname.find('ReLU') != -1:
-        m.inplace=True
+        m.inplace = True
 
 
 def to_categorical(y, num_classes):
     """ 1-hot encodes a tensor """
-    new_y = torch.eye(num_classes)[y.cpu().data.numpy(),]
+    new_y = torch.eye(num_classes)[y.cpu().data.numpy(), ]
     if (y.is_cuda):
         return new_y.cuda()
     return new_y
@@ -126,7 +126,7 @@ def main(args):
         np.save(trainsplit_path, trainsplit)
         np.save(testsplit_path, testsplit)
     else:
-        #root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
+        # root = 'C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/treelearning/data/tmp'
         root = "G:/Meine Ablage/Colab/tree_learning/data/chunks"
         trainpath = "/trainsplit.npy"
         testpath = "/valsplit.npy"
@@ -188,7 +188,10 @@ def main(args):
         val_w_accs = checkpoint['val_w_accs']
         val_loss = checkpoint['val_loss']
         val_miou = checkpoint['val_miou']
-
+        val_tree_accs = []
+        val_no_tree_accs = []
+        train_tree_accs = []
+        train_no_tree_accs = []
 
     except:
         log_string('No existing model, starting training from scratch...')
@@ -211,8 +214,6 @@ def main(args):
         val_loss = []
         val_miou = []
 
-
-
     if args.optimizer == 'Adam':
         optimizer = torch.optim.Adam(
             classifier.parameters(),
@@ -233,10 +234,7 @@ def main(args):
     MOMENTUM_DECCAY = 0.5
     MOMENTUM_DECCAY_STEP = args.step_size
 
-    best_acc = 0
     global_epoch = 0
-    best_class_avg_iou = 0 # todo
-    best_inctance_avg_iou = 0
 
     '''
     START TRAINING
@@ -249,8 +247,6 @@ def main(args):
         acc_tree = []
         acc_no_tree = []
         miou = []
-
-
 
         '''adjust training parameters'''
         log_string('\nEpoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
@@ -270,7 +266,7 @@ def main(args):
         for i, (points, label, target) in tqdm(enumerate(trainDataLoader), total=len(trainDataLoader), smoothing=0.9):
             optimizer.zero_grad()
 
-            points, target, n_sampled_points = provider.random_point_dropout(points, target) # this is different from test
+            points, target, n_sampled_points = provider.random_point_dropout(points, target)  # this is different from test
             NUM_POINT = points.size()[1]
             points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
             points = points.transpose(2, 1)
@@ -305,8 +301,6 @@ def main(args):
             iou_not_tree = tn / (tn + fn + fp)
             miou.append((iou_tree + iou_not_tree)/2)
 
-
-
         '''After one epoch, metrics aggregated over iterations'''
         train_accs.append(np.round(np.mean(mean_correct), 5))
         train_w_accs.append(np.round(np.mean(w_acc), 5))
@@ -318,8 +312,6 @@ def main(args):
         log_string('Epoch %d trainloss: %f, trainacc: %f, trainwacc: %f, testacctree: %f, testaccnotree: %f, mIOU: %f' % (
             epoch + 1, train_loss[epoch], train_accs[epoch], train_w_accs[epoch], train_tree_accs[epoch], train_no_tree_accs[epoch], train_miou[epoch]
         ))
-
-
 
         '''validation set'''
         with torch.no_grad():
@@ -365,7 +357,6 @@ def main(args):
                 iou_not_tree = tn / (tn + fn + fp)
                 miou.append((iou_tree + iou_not_tree) / 2)
 
-
         '''After one epoch, metrics aggregated over iterations'''
         val_accs.append(np.round(np.mean(mean_correct), 5))
         val_w_accs.append(np.round(np.mean(w_acc), 5))
@@ -375,7 +366,7 @@ def main(args):
         val_miou.append(np.round(np.mean(miou), 5))
 
         log_string('Epoch %d testloss: %f, testacc: %f, testwacc: %f, testacctree: %f, testaccnotree: %f, testmIOU: %f' % (
-            epoch + 1,val_loss[epoch], val_accs[epoch], val_w_accs[epoch], val_tree_accs[epoch], val_no_tree_accs[epoch], val_miou[epoch]
+            epoch + 1, val_loss[epoch], val_accs[epoch], val_w_accs[epoch], val_tree_accs[epoch], val_no_tree_accs[epoch], val_miou[epoch]
         ))
 
         if val_w_accs[epoch] >= np.max(val_w_accs):
@@ -399,16 +390,6 @@ def main(args):
             log_string('Saving model....')
 
         global_epoch += 1
-
-        # if test_metrics['accuracy'] > best_acc:
-        #     best_acc = test_metrics['accuracy']
-        # if test_metrics['class_avg_iou'] > best_class_avg_iou:
-        #     best_class_avg_iou = test_metrics['class_avg_iou']
-        # if test_metrics['inctance_avg_iou'] > best_inctance_avg_iou: # todo
-        #     best_inctance_avg_iou = test_metrics['inctance_avg_iou']
-        # log_string('Best accuracy is: %.5f' % best_acc)
-        # log_string('Best class avg mIOU is: %.5f' % best_class_avg_iou)
-        # log_string('Best inctance avg mIOU is: %.5f' % best_inctance_avg_iou)
 
     # save performance measures
     accs_path = str(performance_dir) + '/accs.npy'
