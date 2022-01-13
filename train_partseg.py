@@ -198,12 +198,16 @@ def main(args):
         # train metrics
         train_accs = []
         train_w_accs = []
+        train_tree_accs = []
+        train_no_tree_accs = []
         train_loss = []
         train_miou = []
 
         # val metrics
         val_accs = []
         val_w_accs = []
+        val_tree_accs = []
+        val_no_tree_accs = []
         val_loss = []
         val_miou = []
 
@@ -231,7 +235,7 @@ def main(args):
 
     best_acc = 0
     global_epoch = 0
-    best_class_avg_iou = 0
+    best_class_avg_iou = 0 # todo
     best_inctance_avg_iou = 0
 
     '''
@@ -242,6 +246,8 @@ def main(args):
         mean_correct = []
         mean_loss = []
         w_acc = []
+        acc_tree = []
+        acc_no_tree = []
         miou = []
 
 
@@ -290,6 +296,8 @@ def main(args):
             fp = np.sum(np.logical_and(target == 0, pred_choice == 1))
             tn = np.sum(np.logical_and(target == 0, pred_choice == 0))
 
+            acc_tree.append(tp / (tp + fn))
+            acc_no_tree.append(tn / (tn + fp))
             w_acc.append((tp / (tp + fn) + tn / (tn + fp)) / 2)
 
             # iou for batch
@@ -302,11 +310,13 @@ def main(args):
         '''After one epoch, metrics aggregated over iterations'''
         train_accs.append(np.round(np.mean(mean_correct), 5))
         train_w_accs.append(np.round(np.mean(w_acc), 5))
+        train_tree_accs.append(np.round(np.mean(acc_tree), 5))
+        train_no_tree_accs.append(np.round(np.mean(acc_no_tree), 5))
         train_loss.append(np.round(np.mean(mean_loss), 5))
         train_miou.append(np.round(np.mean(miou), 5))
 
-        log_string('Epoch %d trainloss: %f, trainacc: %f, trainwacc: %f, mIOU: %f' % (
-            epoch + 1, train_loss[epoch], train_accs[epoch], train_w_accs[epoch], train_miou[epoch]
+        log_string('Epoch %d trainloss: %f, trainacc: %f, trainwacc: %f, testacctree: %f, testaccnotree: %f, mIOU: %f' % (
+            epoch + 1, train_loss[epoch], train_accs[epoch], train_w_accs[epoch], train_tree_accs[epoch], train_no_tree_accs[epoch], train_miou[epoch]
         ))
 
 
@@ -320,8 +330,6 @@ def main(args):
             miou = []
 
             classifier = classifier.eval()
-
-
 
             '''apply current model to validation set'''
             for batch_id, (points, label, target) in tqdm(enumerate(testDataLoader), total=len(testDataLoader), smoothing=0.9):
@@ -361,11 +369,13 @@ def main(args):
         '''After one epoch, metrics aggregated over iterations'''
         val_accs.append(np.round(np.mean(mean_correct), 5))
         val_w_accs.append(np.round(np.mean(w_acc), 5))
+        val_tree_accs.append(np.round(np.mean(acc_tree), 5))
+        val_no_tree_accs.append(np.round(np.mean(acc_no_tree), 5))
         val_loss.append(np.round(np.mean(mean_loss), 5))
         val_miou.append(np.round(np.mean(miou), 5))
 
         log_string('Epoch %d testloss: %f, testacc: %f, testwacc: %f, testacctree: %f, testaccnotree: %f, testmIOU: %f' % (
-            epoch + 1,val_loss[epoch], val_accs[epoch], val_w_accs[epoch], np.mean(acc_tree), np.mean(acc_no_tree), val_miou[epoch]
+            epoch + 1,val_loss[epoch], val_accs[epoch], val_w_accs[epoch], val_tree_accs[epoch], val_no_tree_accs[epoch], val_miou[epoch]
         ))
 
         if val_w_accs[epoch] >= np.max(val_w_accs):
@@ -394,7 +404,7 @@ def main(args):
         #     best_acc = test_metrics['accuracy']
         # if test_metrics['class_avg_iou'] > best_class_avg_iou:
         #     best_class_avg_iou = test_metrics['class_avg_iou']
-        # if test_metrics['inctance_avg_iou'] > best_inctance_avg_iou:
+        # if test_metrics['inctance_avg_iou'] > best_inctance_avg_iou: # todo
         #     best_inctance_avg_iou = test_metrics['inctance_avg_iou']
         # log_string('Best accuracy is: %.5f' % best_acc)
         # log_string('Best class avg mIOU is: %.5f' % best_class_avg_iou)
@@ -403,16 +413,25 @@ def main(args):
     # save performance measures
     accs_path = str(performance_dir) + '/accs.npy'
     w_accs_path = str(performance_dir) + '/w_accs.npy'
+    tree_accs_path = str(performance_dir) + "/tree_accs.npy"
+    no_tree_accs_path = str(performance_dir) + "/no_tree_accs.npy"
     loss_path = str(performance_dir) + '/loss.npy'
     mious_path = str(performance_dir) + '/mious.npy'
+
     accs = np.array([train_accs, val_accs]).T
-    loss = np.array([train_loss, val_loss]).T
     w_accs = np.array([train_w_accs, val_w_accs]).T
+    tree_accs = np.array([train_tree_accs, val_tree_accs]).T
+    no_tree_accs = np.array([train_no_tree_accs, val_no_tree_accs]).T
+    loss = np.array([train_loss, val_loss]).T
     mious = np.array([train_miou, val_miou]).T
+
     np.save(accs_path, accs)
     np.save(w_accs_path, w_accs)
+    np.save(tree_accs_path, tree_accs)
+    np.save(no_tree_accs_path, no_tree_accs)
     np.save(loss_path, loss)
     np.save(mious_path, mious)
+
 
 if __name__ == '__main__':
     args = parse_args()

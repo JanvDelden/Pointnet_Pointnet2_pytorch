@@ -6,3 +6,4 @@
 2022-01-12 20:32:16,020 - Model - INFO - 
 Epoch 1 (1/10):
 2022-01-12 20:32:16,021 - Model - INFO - Learning rate:0.001000
+2022-01-12 20:38:06,245 - Model - INFO - Epoch 1 trainloss: 7.567700, trainacc: 0.689750, trainwacc: 0.757880, mIOU: 0.482410

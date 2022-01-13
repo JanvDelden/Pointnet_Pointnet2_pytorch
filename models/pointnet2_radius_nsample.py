@@ -85,12 +85,11 @@ class get_loss(nn.Module):
 
         if self.adaptive:
             for i in range(self.batch_size):
-                temp = target[start:stop]
-                frac_tree = torch.sum(temp) / len(temp)
+                frac_tree = torch.sum(target[start:stop]) / len(target[start:stop])
                 weights = torch.tensor([1, (1-frac_tree)/frac_tree])
                 weights = weights.to(self.device)
                 weights = weights.float()
-                total_loss += F.nll_loss(pred[start:stop], temp, weight=weights)
+                total_loss += F.nll_loss(pred[start:stop], target[start:stop], weight=weights)
                 start += num_points
                 stop += num_points
 
