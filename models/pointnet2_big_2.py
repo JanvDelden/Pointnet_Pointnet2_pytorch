@@ -37,7 +37,7 @@ class get_model(nn.Module):
         self.fp5 = PointNetFeaturePropagation(in_channel=1024+256+256+256+256, mlp=[512, 256])
         self.fp4 = PointNetFeaturePropagation(in_channel=256+256+256+256+256, mlp=[256, 256])
         self.fp3 = PointNetFeaturePropagation(in_channel=256+256+256+256+256+256, mlp=[256, 128])
-        self.fp2 = PointNetFeaturePropagation(in_channel=256+64+64+128+128+128, mlp=[256, 128])
+        self.fp2 = PointNetFeaturePropagation(in_channel=128+64+64+128+128+128, mlp=[256, 128])
         self.fp1 = PointNetFeaturePropagation(in_channel=128+6+1+additional_channel, mlp=[128, 128])
         self.conv1 = nn.Conv1d(128, 128, 1)
         self.bn1 = nn.BatchNorm1d(128)
