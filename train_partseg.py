@@ -60,6 +60,7 @@ def parse_args():
     parser.add_argument('--lr_decay', type=float, default=0.5, help='decay rate for lr decay')
     parser.add_argument('--weight', type=float, default=5.2, help='weight to be applied to loss of tree points')
     parser.add_argument('--adaptive', action='store_true', default=False, help='use adaptive loss weights')
+    parser.add_argument('--dropout_ratio', type=float, default=0.8, help='dropout ratio during training')
 
     return parser.parse_args()
 
@@ -267,7 +268,7 @@ def main(args):
         for i, (points, label, target) in tqdm(enumerate(trainDataLoader), total=len(trainDataLoader), smoothing=0.9):
             optimizer.zero_grad()
 
-            points, target, n_sampled_points = provider.random_point_dropout(points, target)  # this is different from test
+            points, target, n_sampled_points = provider.random_point_dropout(points, target, args.dropout_ratio)  # this is different from test
             cur_batch_size = points.size()[0]
             points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
             points = points.transpose(2, 1)

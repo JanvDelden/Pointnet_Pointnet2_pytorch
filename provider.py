@@ -246,7 +246,7 @@ def random_scale_point_cloud(batch_data, scale_low=0.8, scale_high=1.25):
     return batch_data
 
 
-def random_point_dropout(batch_points, batch_label, max_dropout_ratio=0.5):
+def random_point_dropout(batch_points, batch_label, max_dropout_ratio):
     '''
     randomly removes points from chunks, a random ratio of points is selected with max_dropout_ratio
     :param batch_points: BxNxC
