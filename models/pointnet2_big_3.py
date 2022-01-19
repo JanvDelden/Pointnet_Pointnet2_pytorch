@@ -16,13 +16,13 @@ class get_model(nn.Module):
         self.normal_channel = normal_channel
 
         # the radii are chosen to be smaller, also we include more radii
-        self.sa1 = PointNetSetAbstractionMsg(npoint=512, radius_list=[0.005, 0.015, 0.03, 0.06, 0.10], nsample_list=[32, 64, 128, 256, 350],
+        self.sa1 = PointNetSetAbstractionMsg(npoint=1024, radius_list=[0.01, 0.02, 0.04, 0.08], nsample_list=[64, 128, 256, 512],
                                              in_channel=3+additional_channel,
-                                             mlp_list=[[32, 32, 64], [32, 32, 64], [64, 64, 128], [64, 96, 128], [64, 96, 128]])
-        self.sa2 = PointNetSetAbstractionMsg(256, radius_list=[0.06, 0.12, 0.24], nsample_list=[32, 64, 128],
-                                             in_channel=64+64+128+128+128,
+                                             mlp_list=[[32, 32, 64], [32, 32, 64], [64, 64, 128], [64, 96, 128]])
+        self.sa2 = PointNetSetAbstractionMsg(512, radius_list=[0.08, 0.16, 0.32], nsample_list=[64, 128, 256],
+                                             in_channel=64+64+128+128,
                                              mlp_list=[[128, 128, 256], [128, 128, 256], [128, 196, 256]])
-        self.sa3 = PointNetSetAbstractionMsg(128, radius_list=[0.24, 0.48], nsample_list=[32, 64],
+        self.sa3 = PointNetSetAbstractionMsg(128, radius_list=[0.32, 0.64], nsample_list=[64, 128],
                                              in_channel=256+256+256,
                                              mlp_list=[[128, 128, 256], [128, 196, 256]])  # might make these bigger
         self.sa4 = PointNetSetAbstraction(npoint=None, radius=None, nsample=None,
@@ -33,7 +33,7 @@ class get_model(nn.Module):
         # provide predictions for the total number of points
         self.fp4 = PointNetFeaturePropagation(in_channel=1024+256+256, mlp=[512, 256])
         self.fp3 = PointNetFeaturePropagation(in_channel=256+256+256+256, mlp=[256, 256])
-        self.fp2 = PointNetFeaturePropagation(in_channel=256+64+64+128+128+128, mlp=[256, 128])
+        self.fp2 = PointNetFeaturePropagation(in_channel=256+64+64+128+128, mlp=[256, 128])
         self.fp1 = PointNetFeaturePropagation(in_channel=128+6+1+additional_channel, mlp=[128, 128])
         self.conv1 = nn.Conv1d(128, 128, 1)
         self.bn1 = nn.BatchNorm1d(128)
