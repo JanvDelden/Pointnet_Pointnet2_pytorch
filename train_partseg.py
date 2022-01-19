@@ -141,7 +141,7 @@ def main(args):
     testtransform = t.Compose([t.Normalize()])
 
     TRAIN_DATASET = PartNormalDataset(root=root, npoints=args.npoint, transform=traintransform, splitpath=root + trainpath, normal_channel=args.normal)
-    trainDataLoader = torch.utils.data.DataLoader(TRAIN_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=10, drop_last=True)
+    trainDataLoader = torch.utils.data.DataLoader(TRAIN_DATASET, batch_size=args.batch_size, shuffle=True, num_workers=10, drop_last=True)
     TEST_DATASET = PartNormalDataset(root=root, npoints=args.npoint, transform=testtransform, splitpath=root + testpath, normal_channel=args.normal)
     testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=10)
     log_string("The number of training data is: %d" % len(TRAIN_DATASET))
