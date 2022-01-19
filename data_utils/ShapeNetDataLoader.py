@@ -14,56 +14,17 @@ class PartNormalDataset(Dataset):
         self.root = root
         self.mode = mode
         self.splitpath = splitpath
-        self.catfile = os.path.join(self.root, 'synsetoffset2category.txt')
-        self.cat = {}
         self.normal_channel = normal_channel
-
-        with open(self.catfile, 'r') as f:
-            for line in f:
-                ls = line.strip().split()
-                self.cat[ls[0]] = ls[1]
-        self.cat = {k: v for k, v in self.cat.items()}
-        self.classes_original = dict(zip(self.cat, range(len(self.cat))))
-
-        if not class_choice is None:
-            self.cat = {k:v for k,v in self.cat.items() if k in class_choice}
-        # print(self.cat)
-
-        self.meta = {}
-
-        for item in self.cat:
-            # print('category', item)
-            self.meta[item] = []
-            dir_point = os.path.join(self.root, self.cat[item])
-            fns = np.array(os.listdir(dir_point))
-            n = len(fns)
-
-            fns = np.arange(0, n)
-            indices = np.load(self.splitpath)
-            fns = fns[indices]
-
-            # print(os.path.basename(fns))
-            for fn in fns:
-                self.meta[item].append(os.path.join(dir_point, str(fn) + '.npy'))
-
+        dir_point = os.path.join(root, "/01234/")
+        paths = np.array(os.listdir(dir_point))
         self.datapath = []
-        for item in self.cat:
-            for fn in self.meta[item]:
-                self.datapath.append((item, fn))
-
-        self.classes = {}
-        for i in self.cat.keys():
-            self.classes[i] = self.classes_original[i]
-
-        # Mapping from category ('Chair') to a list of int [10,11,12,13] as segmentation labels
-        self.seg_classes = {'Tree': [0, 1]}
+        for path in paths:
+            self.datapath.append(os.path.join(dir_point, path))
 
     def __getitem__(self, index):
-        fn = self.datapath[index]
-        cat = self.datapath[index][0]
-        cls = self.classes[cat]
-        cls = np.array([cls]).astype(np.int32)
-        data = np.load(fn[1]).astype(np.float32)
+        path = self.datapath[index]
+        cls = np.array([0]).astype(np.int32)
+        data = np.load(path).astype(np.float32)
         untransformed_points = data[:, 0:3]
         point_set = data[:, 0:3]
         seg = data[:, -1].astype(np.int32)
