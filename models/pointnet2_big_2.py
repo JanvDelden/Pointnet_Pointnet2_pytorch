@@ -29,7 +29,7 @@ class get_model(nn.Module):
                                              in_channel=256+256+256+256,
                                              mlp_list=[[128, 128, 256], [128, 196, 256], [128, 196, 256], [128, 196, 256]])
         self.sa5 = PointNetSetAbstraction(npoint=None, radius=None, nsample=None,
-                                          in_channel=256+256+256+256 + 3,
+                                          in_channel=256+256+256+256+3,
                                           mlp=[256, 512, 1024], group_all=True)
 
         # feature propagation layers aggregate the information encoded by the set abstraction layers and upscale to
