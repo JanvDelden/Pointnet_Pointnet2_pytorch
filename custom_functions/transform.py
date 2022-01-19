@@ -89,20 +89,6 @@ class RandomScale(object):
         return points, label
 
 
-class RandomShift(object):
-    """
-    Shifts all points a given maximum distance
-    """
-
-    def __init__(self, shift=[0.2, 0.2, 0]):
-        self.shift = shift
-
-    def __call__(self, points, label):
-        shift_x = np.random.uniform(-self.shift[0], self.shift[0])
-        shift_y = np.random.uniform(-self.shift[1], self.shift[1])
-        shift_z = np.random.uniform(-self.shift[2], self.shift[2])
-        points += [shift_x, shift_y, shift_z]
-        return points, label
 
 
 class RandomFlip(object):
@@ -126,7 +112,7 @@ class RandomJitter(object):
     Shifts all points a random distance. The distance shifted is different for every point
     """
 
-    def __init__(self, sigma=0.003, clip=0.01):
+    def __init__(self, sigma=0.03, clip=0.06):
         self.sigma = sigma
         self.clip = clip
 
@@ -155,3 +141,18 @@ class RandomDropout(object):
         points[drop_idx] = np.zeros((npoints, 3)) + points[0]
         label[drop_idx] = None
         return points, label
+
+# class RandomShift(object):
+#     """
+#     Shifts all points a given maximum distance
+#     """
+#
+#     def __init__(self, shift=[0.2, 0.2, 0]):
+#         self.shift = shift
+#
+#     def __call__(self, points, label):
+#         shift_x = np.random.uniform(-self.shift[0], self.shift[0])
+#         shift_y = np.random.uniform(-self.shift[1], self.shift[1])
+#         shift_z = np.random.uniform(-self.shift[2], self.shift[2])
+#         points += [shift_x, shift_y, shift_z]
+#         return points, label
