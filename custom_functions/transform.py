@@ -112,7 +112,7 @@ class RandomJitter(object):
     Shifts all points a random distance. The distance shifted is different for every point
     """
 
-    def __init__(self, sigma=0.003, clip=0.01):
+    def __init__(self, sigma=0.03, clip=0.06):
         self.sigma = sigma
         self.clip = clip
 

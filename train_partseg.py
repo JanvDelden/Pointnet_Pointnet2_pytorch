@@ -133,11 +133,11 @@ def main(args):
         testpath = "/valsplit.npy"
 
     '''TRANSFORMATIONS TO BE APPLIED DURING TRAINING AND TEST TIME'''
-    traintransform = t.Compose([t.Normalize(),
+    traintransform = t.Compose([t.RandomJitter(),
+                                t.Normalize(),
                                 t.RandomScale(anisotropic=True, scale=[0.8, 1.2]),
                                 t.RandomRotate(),
-                                t.RandomFlip(),
-                                t.RandomJitter()])
+                                t.RandomFlip()])
     testtransform = t.Compose([t.Normalize()])
 
     TRAIN_DATASET = PartNormalDataset(root=root, npoints=args.npoint, transform=traintransform, splitpath=root + trainpath, normal_channel=args.normal)
