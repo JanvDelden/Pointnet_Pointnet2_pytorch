@@ -2,7 +2,8 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-def plot(title, label, result_path, yscale='linear', save_path=None):
+
+def plot(title, label, result_path, yscale='linear', save_path=None, legend=["Train results", "Validation results"]):
     """Plot learning curves.
 
     Args:
@@ -23,7 +24,7 @@ def plot(title, label, result_path, yscale='linear', save_path=None):
     sns.set(style='ticks')
 
     plt.plot(epoch_array, train_results, epoch_array, val_results, linestyle='dashed', marker='o', zorder=-1)
-    legend = ['Train results', 'Validation results']
+    legend = [legend[0], legend[1]]
 
     plt.legend(legend)
     plt.xlabel('Epoch')
