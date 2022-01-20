@@ -16,7 +16,7 @@ def get_device(cuda_preference=True):
 def gen_split(percentages=(0.5, 0.2),
               paths=("/content/Pointnet_Pointnet2_pytorch/data/trainsplit.npy",
                      "/content/Pointnet_Pointnet2_pytorch/data/valsplit.npy"),
-              sample_number=255,
+              sample_number=252,
               shuffle=True,
               seed=1):
     import random
