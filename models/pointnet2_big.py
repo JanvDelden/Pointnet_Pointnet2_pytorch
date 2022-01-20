@@ -84,7 +84,7 @@ class get_loss(nn.Module):
         if self.adaptive:
             for i in range(cur_batch_size):
                 frac_tree = torch.sum(target[start:stop]) / len(target[start:stop])
-                weights = torch.tensor([1, (1-frac_tree)/frac_tree])
+                weights = torch.tensor([1, ((1-frac_tree)/frac_tree) / 2])
                 weights = weights.to(self.device)
                 weights = weights.float()
                 total_loss += F.nll_loss(pred[start:stop], target[start:stop], weight=weights)
