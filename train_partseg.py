@@ -295,8 +295,8 @@ def main(args):
             tn = np.sum(np.logical_and(target == 0, pred_choice == 0))
 
             precision.append(tp / (tp + fp))
-            recall.append(tp / (tn + fn))
-            f1score.append((precision[-1] * recall[-1]) / (precision[-1] + recall[-1]))
+            recall.append(tp / (tp + fn))
+            f1score.append(2 * (precision[-1] * recall[-1]) / (precision[-1] + recall[-1]))
 
             # iou for batch
             iou_tree = tp / (tp + fp + fn)
@@ -353,8 +353,8 @@ def main(args):
                 tn = np.sum(np.logical_and(target == 0, pred_choice == 0))
 
                 precision.append(tp / (tp + fp))
-                recall.append(tp / (tn + fn))
-                f1score.append((precision[-1] * recall[-1]) / (precision[-1] + recall[-1]))
+                recall.append(tp / (tp + fn))
+                f1score.append(2 * (precision[-1] * recall[-1]) / (precision[-1] + recall[-1]))
 
                 # iou for batch
                 iou_tree = tp / (tp + fp + fn)
