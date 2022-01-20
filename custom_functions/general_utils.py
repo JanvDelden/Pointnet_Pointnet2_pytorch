@@ -1,5 +1,8 @@
 import torch
-
+import shutil
+import pathlib
+import sys
+import importlib
 
 def get_device(cuda_preference=True):
     print('cuda available:', torch.cuda.is_available(),
@@ -34,6 +37,123 @@ def gen_split(percentages=(0.5, 0.2),
         index_subset = indices[start:stop]
         np.save(path, index_subset)
         start = stop
+
+
+def get_model(source_path):
+    source_path = source_path # pretrained model and corresponding files to be loaded
+    model_name = set(os.listdir(source_path)) - set(["pointnet2_utils.py", "logs", "checkpoints", "performance", "split"])
+    model_name = list(model_name)[0]
+    model_name = model_name[0:-3]
+    source_path = source_path + "/."
+    destination_path = "/content/Pointnet_Pointnet2_pytorch/log/part_seg/"
+    destination_path = destination_path + model_name
+    shutil.rmtree(destination_path)
+    pathlib.Path(destination_path).mkdir(parents=True, exist_ok=True)
+    shutil.copy(source_path, destination_path)
+    sys.path.append(destination_path)
+    model = importlib.import_module(model_name)
+
+# load learned model
+def inplace_relu(m):
+    classname = m.__class__.__name__
+    if classname.find('ReLU') != -1:
+        m.inplace=True
+
+    classifier = model.get_model(2, normal_channel=False).to(device)
+    classifier.apply(inplace_relu)
+
+    model_path = destination_path + "/checkpoints/best_model.pth"
+    checkpoint = torch.load(model_path)
+    classifier.load_state_dict(checkpoint['model_state_dict'])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def gen_pred(model):
+#@title generate predictions for chosen tree from trained model (saved in result)
+
+    # load learned model
+    def inplace_relu(m):
+        classname = m.__class__.__name__
+        if classname.find('ReLU') != -1:
+            m.inplace=True
+
+    classifier = model.get_model(2, normal_channel=False).to(device)
+    classifier.apply(inplace_relu)
+
+    model_path = destination_path + "/checkpoints/best_model.pth"
+    checkpoint = torch.load(model_path)
+    classifier.load_state_dict(checkpoint['model_state_dict'])
+
+    # instantiate dataset (choose from trainsplit, valsplit or nosplit)
+    root = "/content/Pointnet_Pointnet2_pytorch/data/"
+
+
+    testtransform = t.Compose([t.Normalize()])
+    TRAIN_DATASET = dset.PartNormalDataset(root=root,
+                                      npoints=npoints,
+                                      transform=testtransform,
+                                      splitpath=split_path,
+                                      normal_channel=False, mode="eval")
+
+    # predict targets for arbitrary tree number
+    points, label, target, _, upoints = TRAIN_DATASET[treenumber]
+    points, label, target = torch.tensor(points), torch.tensor(label), torch.tensor(target)
+    points, target = torch.unsqueeze(points, 0), torch.unsqueeze(target, 0)
+    points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
+    points = points.transpose(2, 1)
+
+
+    def to_categorical(y, num_classes):
+        """ 1-hot encodes a tensor """
+        new_y = torch.eye(num_classes)[y.cpu().data.numpy(),]
+        if (y.is_cuda):
+            return new_y.cuda()
+        return new_y
+
+
+    with torch.no_grad():
+        classifier.eval()
+        result = classifier(points, to_categorical(label, 1))[0]
+
+
+    preds = torch.argmax(result[0], axis=1)
+    points = points[0].T
+    target = target[0]
+    points = points[:, :3]
+    points = points.detach().cpu().numpy()
+    preds = preds.detach().cpu().numpy()
+    target = target.detach().cpu().numpy()
+    m = torch.nn.Softmax()
+    pred_probabilities = m(result[0])[:,1].detach().cpu().numpy()
+
+
+
 
 
 
