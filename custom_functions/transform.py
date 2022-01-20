@@ -89,8 +89,6 @@ class RandomScale(object):
         return points, label
 
 
-
-
 class RandomFlip(object):
     """
     mirrors all points on the x and on the y axis
