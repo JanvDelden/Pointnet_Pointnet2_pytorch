@@ -179,17 +179,17 @@ def main(args):
 
         # train metrics
         train_accs = checkpoint['train_accs']
-        train_w_accs = checkpoint['train_w_accs']
-        train_tree_accs = checkpoint['train_tree_accs']
-        train_no_tree_accs = checkpoint['train_no_tree_accs']
+        train_f1scores = checkpoint['train_f1scores']
+        train_precision = checkpoint['train_precision']
+        train_recall = checkpoint['train_recall']
         train_loss = checkpoint['train_loss']
         train_miou = checkpoint['train_miou']
 
         # val metrics
         val_accs = checkpoint['val_accs']
-        val_w_accs = checkpoint['val_w_accs']
-        val_tree_accs = checkpoint['val_tree_accs']
-        val_no_tree_accs = checkpoint['val_no_tree_accs']
+        val_f1scores = checkpoint['val_f1scores']
+        val_precision = checkpoint['val_precision']
+        val_recall = checkpoint['val_recall']
         val_loss = checkpoint['val_loss']
         val_miou = checkpoint['val_miou']
 
@@ -202,17 +202,17 @@ def main(args):
 
         # train metrics
         train_accs = []
-        train_w_accs = []
-        train_tree_accs = []
-        train_no_tree_accs = []
+        train_f1scores = []
+        train_precision = []
+        train_recall = []
         train_loss = []
         train_miou = []
 
         # val metrics
         val_accs = []
-        val_w_accs = []
-        val_tree_accs = []
-        val_no_tree_accs = []
+        val_f1scores = []
+        val_precision = []
+        val_recall = []
         val_loss = []
         val_miou = []
 
@@ -245,9 +245,9 @@ def main(args):
     for epoch in range(start_epoch, args.epoch):
         mean_correct = []
         mean_loss = []
-        w_acc = []
-        acc_tree = []
-        acc_no_tree = []
+        f1score = []
+        precision = []
+        recall = []
         miou = []
 
         '''adjust training parameters'''
@@ -294,9 +294,9 @@ def main(args):
             fp = np.sum(np.logical_and(target == 0, pred_choice == 1))
             tn = np.sum(np.logical_and(target == 0, pred_choice == 0))
 
-            acc_tree.append(tp / (tp + fn))
-            acc_no_tree.append(tn / (tn + fp))
-            w_acc.append((tp / (tp + fn) + tn / (tn + fp)) / 2)
+            precision.append(tp / (tp + fp))
+            recall.append(tp / (tn + fn))
+            f1score.append((precision[-1] * recall[-1]) / (precision[-1] + recall[-1]))
 
             # iou for batch
             iou_tree = tp / (tp + fp + fn)
@@ -305,23 +305,24 @@ def main(args):
 
         '''After one epoch, metrics aggregated over iterations'''
         train_accs.append(np.round(np.mean(mean_correct), 5))
-        train_w_accs.append(np.round(np.mean(w_acc), 5))
-        train_tree_accs.append(np.round(np.mean(acc_tree), 5))
-        train_no_tree_accs.append(np.round(np.mean(acc_no_tree), 5))
+        train_f1scores.append(np.round(np.mean(f1score), 5))
+        train_precision.append(np.round(np.mean(precision), 5))
+        train_recall.append(np.round(np.mean(recall), 5))
         train_loss.append(np.round(np.mean(mean_loss), 5))
         train_miou.append(np.round(np.mean(miou), 5))
 
-        log_string('Epoch %d trainloss: %f, trainacc: %f, trainwacc: %f, testacctree: %f, testaccnotree: %f, mIOU: %f' % (
-            epoch + 1, train_loss[epoch], train_accs[epoch], train_w_accs[epoch],
-            train_tree_accs[epoch], train_no_tree_accs[epoch], train_miou[epoch]
+        log_string('Epoch %d trainloss: %f, trainacc: %f, train_f1scores: %f, train_precision: %f, train_recall: %f, mIOU: %f' % (
+            epoch + 1, train_loss[epoch], train_accs[epoch], train_f1scores[epoch],
+            train_precision[epoch], train_recall[epoch], train_miou[epoch]
         ))
 
         '''validation set'''
         with torch.no_grad():
+            mean_correct = []
             mean_loss = []
-            w_acc = []
-            acc_tree = []
-            acc_no_tree = []
+            f1score = []
+            precision = []
+            recall = []
             miou = []
 
             classifier = classifier.eval()
@@ -351,9 +352,9 @@ def main(args):
                 fp = np.sum(np.logical_and(target == 0, pred_choice == 1))
                 tn = np.sum(np.logical_and(target == 0, pred_choice == 0))
 
-                acc_tree.append(tp / (tp + fn))
-                acc_no_tree.append(tn / (tn + fp))
-                w_acc.append((acc_tree[batch_id] + acc_no_tree[batch_id]) / 2)
+                precision.append(tp / (tp + fp))
+                recall.append(tp / (tn + fn))
+                f1score.append((precision[-1] * recall[-1]) / (precision[-1] + recall[-1]))
 
                 # iou for batch
                 iou_tree = tp / (tp + fp + fn)
@@ -362,18 +363,18 @@ def main(args):
 
         '''After one epoch, metrics aggregated over iterations'''
         val_accs.append(np.round(np.mean(mean_correct), 5))
-        val_w_accs.append(np.round(np.mean(w_acc), 5))
-        val_tree_accs.append(np.round(np.mean(acc_tree), 5))
-        val_no_tree_accs.append(np.round(np.mean(acc_no_tree), 5))
+        val_f1scores.append(np.round(np.mean(f1score), 5))
+        val_precision.append(np.round(np.mean(precision), 5))
+        val_recall.append(np.round(np.mean(recall), 5))
         val_loss.append(np.round(np.mean(mean_loss), 5))
         val_miou.append(np.round(np.mean(miou), 5))
 
-        log_string('Epoch %d testloss: %f, testacc: %f, testwacc: %f, testacctree: %f, testaccnotree: %f, testmIOU: %f' % (
-            epoch + 1, val_loss[epoch], val_accs[epoch], val_w_accs[epoch],
-            val_tree_accs[epoch], val_no_tree_accs[epoch], val_miou[epoch]
+        log_string('Epoch %d testloss: %f, testacc: %f, val_f1scores: %f, val_precision: %f, val_recall: %f, testmIOU: %f' % (
+            epoch + 1, val_loss[epoch], val_accs[epoch], val_f1scores[epoch],
+            val_precision[epoch], val_recall[epoch], val_miou[epoch]
         ))
 
-        if val_w_accs[epoch] >= np.max(val_w_accs):
+        if val_f1scores[epoch] >= np.max(val_f1scores):
             logger.info('Save model...')
             savepath = str(checkpoints_dir) + '/best_model.pth'
             log_string('Saving at %s' % savepath)
@@ -381,14 +382,14 @@ def main(args):
                 'epoch': epoch+1,
                 'train_accs': train_accs,
                 'train_loss': train_loss,
-                'train_w_accs': train_w_accs,
-                'train_tree_accs': train_tree_accs,
-                'train_no_tree_accs': train_no_tree_accs,
+                'train_f1scores': train_f1scores,
+                'train_precision': train_precision,
+                'train_recall': train_recall,
                 'train_miou': train_miou,
                 'val_accs': val_accs,
-                'val_w_accs': val_w_accs,
-                'val_tree_accs': val_tree_accs,
-                'val_no_tree_accs': val_no_tree_accs,
+                'val_f1scores': val_f1scores,
+                'val_precision': val_precision,
+                'val_recall': val_recall,
                 'val_miou': val_miou,
                 'val_loss': val_loss,
                 'model_state_dict': classifier.state_dict(),
@@ -401,23 +402,23 @@ def main(args):
 
     # save performance measures
     accs_path = str(performance_dir) + '/accs.npy'
-    w_accs_path = str(performance_dir) + '/w_accs.npy'
-    tree_accs_path = str(performance_dir) + "/tree_accs.npy"
-    no_tree_accs_path = str(performance_dir) + "/no_tree_accs.npy"
+    f1scores_path = str(performance_dir) + '/f1scores.npy'
+    precision_path = str(performance_dir) + "/precision.npy"
+    recall_path = str(performance_dir) + "/recall.npy"
     loss_path = str(performance_dir) + '/loss.npy'
     mious_path = str(performance_dir) + '/mious.npy'
 
     accs = np.array([train_accs, val_accs]).T
-    w_accs = np.array([train_w_accs, val_w_accs]).T
-    tree_accs = np.array([train_tree_accs, val_tree_accs]).T
-    no_tree_accs = np.array([train_no_tree_accs, val_no_tree_accs]).T
+    f1scores = np.array([train_f1scores, val_f1scores]).T
+    precision = np.array([train_precision, val_precision]).T
+    recall = np.array([train_recall, val_recall]).T
     loss = np.array([train_loss, val_loss]).T
     mious = np.array([train_miou, val_miou]).T
 
     np.save(accs_path, accs)
-    np.save(w_accs_path, w_accs)
-    np.save(tree_accs_path, tree_accs)
-    np.save(no_tree_accs_path, no_tree_accs)
+    np.save(f1scores_path, f1scores)
+    np.save(precision_path, precision)
+    np.save(recall_path, recall)
     np.save(loss_path, loss)
     np.save(mious_path, mious)
 
