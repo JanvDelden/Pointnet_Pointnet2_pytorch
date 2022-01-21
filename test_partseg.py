@@ -15,7 +15,7 @@ def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_sam
         split_path = source_path[0] + "/split/valsplit.npy"
     else:
         split_path = source_path + "/split/valsplit.npy"
-        
+
     valindices = np.load(split_path)
     f1score, precision, recall, total, correct = [], [], [], [], []
 
@@ -41,6 +41,7 @@ def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_sam
         total.append(len(pred))
 
     acc = np.array(correct) / np.array(total)
+    print("")
     print("Acc:", np.sum(correct) / np.sum(total), "F1 score", np.mean(f1score), "Precision:", np.mean(precision),
           "Recall:", np.mean(recall))
 
