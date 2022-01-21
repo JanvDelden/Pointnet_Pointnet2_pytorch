@@ -408,7 +408,7 @@ def main(args):
 
         f1scores = np.nanmean(f1scores, axis=0)
         argmax = np.nanargmax(f1scores)
-        argmax_threshold = thresholds[argmax]
+        argmax_threshold = np.squeeze(thresholds)[argmax]
 
         '''After one epoch, metrics aggregated over iterations'''
 
