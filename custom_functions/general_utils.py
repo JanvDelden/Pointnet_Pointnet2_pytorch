@@ -139,5 +139,14 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5):
 
 def multi_model_ensemble(source_paths, npoints, tree_number, n_samples):
 
+    predictions = []
+
     for i in source_paths:
-        
+        prediction, allpoints, targets = multi_sample_ensemble(source_path, npoints, tree_number, n_samples)
+        predictions.append(prediction)
+
+    predictions = np.array(predictions)
+    predictions = np.mean(predictions, axis=0)
+
+    return predictions, allpoints, targets      
+
