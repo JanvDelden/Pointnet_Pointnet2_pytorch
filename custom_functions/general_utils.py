@@ -41,11 +41,9 @@ def gen_split(percentages=(0.5, 0.2),
 
 
 def get_model(source_path):
-    source_path = source_path # pretrained model and corresponding files to be loaded
     model_name = set(os.listdir(source_path)) - set(["pointnet2_utils.py", "logs", "checkpoints", "performance", "split"])
     model_name = list(model_name)[0]
     model_name = model_name[0:-3]
-    source_path
     sys.path.append(source_path)
     model = importlib.import_module(model_name)
 
@@ -54,14 +52,46 @@ def get_model(source_path):
         if classname.find('ReLU') != -1:
             m.inplace=True
 
-    classifier = model.get_model(2, normal_channel=False).to(device)
+    classifier = model.get_model(2, normal_channel=False).to("cuda")
     classifier.apply(inplace_relu)
 
-    model_path = destination_path + "/checkpoints/best_model.pth"
+    model_path = source_path + "/checkpoints/best_model.pth"
     checkpoint = torch.load(model_path)
     classifier.load_state_dict(checkpoint['model_state_dict'])
 
     return classifier
+
+
+def gen_pred(classifier, tree_number, Treedataset):
+    # predict targets for arbitrary tree number
+    points, label, target, _, upoints = TRAIN_DATASET[treenumber]
+    points, label, target = torch.tensor(points), torch.tensor(label), torch.tensor(target)
+    points, target = torch.unsqueeze(points, 0), torch.unsqueeze(target, 0)
+    points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
+    points = points.transpose(2, 1)
+
+    def to_categorical(y, num_classes):
+        """ 1-hot encodes a tensor """
+        new_y = torch.eye(num_classes)[y.cpu().data.numpy(),]
+        if (y.is_cuda):
+            return new_y.cuda()
+        return new_y
+
+    with torch.no_grad():
+        classifier.eval()
+        result = classifier(points, to_categorical(label, 1))[0]
+
+    preds = torch.argmax(result[0], axis=1)
+    points = points[0].T
+    target = target[0]
+    points = points[:, :3]
+    points = points.detach().cpu().numpy()
+    preds = preds.detach().cpu().numpy()
+    target = target.detach().cpu().numpy()
+    m = torch.nn.Softmax()
+    pred_probabilities = m(result[0])[:, 1].detach().cpu().numpy()
+
+    return pred_probabilities
 
 
 
