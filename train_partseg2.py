@@ -321,6 +321,7 @@ def main(args):
             iou_tree = tp / (tp + fp + fn)
             iou_not_tree = tn / (tn + fn + fp)
             ious = (iou_tree + iou_not_tree) / 2
+            ious = np.mean(ious, axis=0)
             miou.append(ious[argmax_f1score])
 
         '''After one epoch, metrics aggregated over iterations'''
@@ -367,31 +368,31 @@ def main(args):
 
                 # get predictions for different thresholds
                 thresholds = torch.tensor([0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5,
-                                           0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64]).reshape(1, 15)
-                pred_choice_varying_threshold = torch.exp(seg_pred.data[:, 1].cpu()).reshape(args.npoint * cur_batch_size, 1) >= thresholds
+                                           0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64]).reshape(1, 1, 15)
+                pred_choice_varying_threshold = torch.exp(seg_pred.data[:, 1].cpu()).reshape(cur_batch_size,
+                                                                                             args.npoint,
+                                                                                             1) >= thresholds
                 pred_choice_varying_threshold = pred_choice_varying_threshold.numpy()
-                target = target.cpu().data.numpy()
+                target = target.cpu().data.numpy().reshape(cur_batch_size, args.npoint, 1)
 
                 # get confusion values for different thresholds
-                tp = np.sum(np.logical_and((target == 1).reshape(args.npoint * cur_batch_size, 1),
-                                           pred_choice_varying_threshold == 1), axis=0)
-                fn = np.sum(np.logical_and((target == 1).reshape(args.npoint * cur_batch_size, 1),
-                                           pred_choice_varying_threshold == 0), axis=0)
-                fp = np.sum(np.logical_and((target == 0).reshape(args.npoint * cur_batch_size, 1),
-                                           pred_choice_varying_threshold == 1), axis=0)
-                tn = np.sum(np.logical_and((target == 0).reshape(args.npoint * cur_batch_size, 1),
-                                           pred_choice_varying_threshold == 0), axis=0)
+                tp = np.sum(np.logical_and(target == 1, pred_choice_varying_threshold == 1), axis=1)
+                fn = np.sum(np.logical_and(target == 1, pred_choice_varying_threshold == 0), axis=1)
+                fp = np.sum(np.logical_and(target == 0, pred_choice_varying_threshold == 1), axis=1)
+                tn = np.sum(np.logical_and(target == 0, pred_choice_varying_threshold == 0), axis=1)
 
                 # get indice of threshold that corresponds to highest f1score
                 precision_varying_threshold = tp / (tp + fp)
                 recall_varying_threshold = tp / (tp + fn)
                 f1score_varying_threshold = 2 * (precision_varying_threshold * recall_varying_threshold) / (
                         precision_varying_threshold + recall_varying_threshold)
+                f1score_varying_threshold = np.mean(f1score_varying_threshold, axis=0)
                 argmax_f1score = np.argmax(f1score_varying_threshold)
+                print("threshold:", thresholds[..., argmax_f1score])
 
                 # append highest f1 score
-                precision.append(precision_varying_threshold[argmax_f1score])
-                recall.append(recall_varying_threshold[argmax_f1score])
+                precision.append(np.mean(precision_varying_threshold, axis=0)[argmax_f1score])
+                recall.append(np.mean(recall_varying_threshold, axis=0)[argmax_f1score])
                 f1score.append(f1score_varying_threshold[argmax_f1score])
 
                 # append corresponding accuracy
@@ -402,6 +403,7 @@ def main(args):
                 iou_tree = tp / (tp + fp + fn)
                 iou_not_tree = tn / (tn + fn + fp)
                 ious = (iou_tree + iou_not_tree) / 2
+                ious = np.mean(ious, axis=0)
                 miou.append(ious[argmax_f1score])
 
         '''After one epoch, metrics aggregated over iterations'''
