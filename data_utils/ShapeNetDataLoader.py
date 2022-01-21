@@ -43,7 +43,7 @@ class PartNormalDataset(Dataset):
         # resample
         point_set = point_set[choice, :]
         if self.mode == "eval":
-            return point_set, cls, seg[choice], (untransformed_points, seg), untransformed_points[choice, :]
+            return point_set, cls, seg[choice], untransformed_points, untransformed_points[choice, :], seg
         return point_set, cls, seg[choice]
 
     def __len__(self):
