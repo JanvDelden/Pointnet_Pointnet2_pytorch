@@ -61,6 +61,7 @@ def parse_args():
     parser.add_argument('--weight', type=float, default=5.2, help='weight to be applied to loss of tree points')
     parser.add_argument('--adaptive', action='store_true', default=False, help='use adaptive loss weights')
     parser.add_argument('--dropout_ratio', type=float, default=0.8, help='dropout ratio during training')
+    parser.add_argument('--betas', type=float, default=(0.9, 0.999), help='momentum for adam')
 
     return parser.parse_args()
 
@@ -220,7 +221,7 @@ def main(args):
         optimizer = torch.optim.Adam(
             classifier.parameters(),
             lr=args.learning_rate,
-            betas=(0.9, 0.999),
+            betas=args.betas,
             eps=1e-08,
             weight_decay=args.decay_rate
         )

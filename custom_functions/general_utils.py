@@ -6,6 +6,8 @@ import importlib
 import os
 from sklearn.neighbors import NearestNeighbors
 import transform as t
+import ShapeNetDataLoader as dset
+import numpy as np
 
 
 def get_device(cuda_preference=True):
@@ -125,8 +127,8 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5):
                                      splitpath=split_path,
                                      normal_channel=False, mode="eval")
     # generate n_samples predictions
-    allpoints = dataset[tree_number][3][0]
-    targets = dataset[tree_number][3][1]
+    allpoints = dataset[tree_number][3]
+    targets = dataset[tree_number][5]
     preds = np.empty((len(allpoints), n_samples))
     for i in range(n_samples):
         pred_probabilities, upoints = gen_pred(classifier, tree_number=tree_number, treedataset=dataset, device=device)
@@ -137,7 +139,16 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5):
 
     return prediction, allpoints, targets
 
-def multi_model_ensemble(source_paths, npoints, tree_number, n_samples):
+def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5):
 
-    for i in source_paths:
-        
+    predictions = []
+
+    for source_path in source_paths:
+        prediction, allpoints, targets = multi_sample_ensemble(source_path, npoints, tree_number, n_samples)
+        predictions.append(prediction)
+
+    predictions = np.array(predictions)
+    predictions = np.mean(predictions, axis=0)
+
+    return predictions, allpoints, targets
+
