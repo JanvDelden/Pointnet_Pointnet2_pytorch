@@ -71,7 +71,7 @@ def get_model(source_path, device):
 
 def gen_pred(classifier, tree_number, treedataset, device):
     # predict targets for arbitrary tree number
-    points, label, target, _, upoints = treedataset[tree_number]
+    points, label, target, _, upoints, alltarget = treedataset[tree_number]
     points, label, target = torch.tensor(points), torch.tensor(label), torch.tensor(target)
     points, target = torch.unsqueeze(points, 0), torch.unsqueeze(target, 0)
     points, label, target = points.float().to(device), label.long().to(device), target.long().to(device)
