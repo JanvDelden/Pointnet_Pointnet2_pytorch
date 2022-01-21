@@ -79,7 +79,7 @@ def gen_pred(classifier, tree_number, treedataset, device):
     def to_categorical(y, num_classes):
         """ 1-hot encodes a tensor """
         new_y = torch.eye(num_classes)[y.cpu().data.numpy(),]
-        if (y.is_cuda):
+        if y.is_cuda:
             return new_y.cuda()
         return new_y
 
@@ -87,15 +87,7 @@ def gen_pred(classifier, tree_number, treedataset, device):
         classifier.eval()
         result = classifier(points, to_categorical(label, 1))[0]
 
-    preds = torch.argmax(result[0], axis=1)
-    points = points[0].T
-    target = target[0]
-    points = points[:, :3]
-    points = points.detach().cpu().numpy()
-    preds = preds.detach().cpu().numpy()
-    target = target.detach().cpu().numpy()
-    m = torch.nn.Softmax()
-    pred_probabilities = m(result[0])[:, 1].detach().cpu().numpy()
+    pred_probabilities = torch.exp(result[0])[:, 1].detach().cpu().numpy()
 
     return pred_probabilities, upoints
 
@@ -118,6 +110,14 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
     split_path = source_path + "/split/valsplit.npy"
     root = "/content/Pointnet_Pointnet2_pytorch/data/"
 
+    # if best threshold is available, choose it
+    try:
+        checkpoint = torch.load(source_path + '/checkpoints/best_model.pth')
+        best_threshold = checkpoint["best_threshold"]
+    except:
+        best_threshold = 0.5
+
+
     use_cuda = torch.cuda.is_available()
     device = torch.device('cuda:0' if use_cuda else 'cpu')
     classifier = get_model(source_path, device)
@@ -138,10 +138,11 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
     if method == "mean":
         prediction = np.mean(preds, axis=1)
     elif method == "majority":
-        prediction = (preds > 0.5).astype("int")
-        prediction = np.mean(prediction, axis=1)
+        prediction = (preds > best_threshold).astype("int")
+        prediction = np.sum((prediction / prediction.shape[1]), axis=1)
+        prediction = (prediction >= 0.5).astype("int")
 
-    return prediction, allpoints, targets
+    return prediction, allpoints, targets, best_threshold
 
 
 def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method="mean"):
