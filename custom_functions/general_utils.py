@@ -48,7 +48,6 @@ def gen_split(percentages=(0.5, 0.2),
 def get_model(source_path, device):
     model_name = set(os.listdir(source_path)) - set(
         ["pointnet2_utils.py", "logs", "checkpoints", "performance", "split", "__pycache__"])
-    print(set(os.listdir(source_path)))
     model_name = list(model_name)[0]
     model_name = model_name[0:-3]
     sys.path.append(source_path)
