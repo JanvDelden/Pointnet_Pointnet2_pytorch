@@ -287,10 +287,9 @@ def main(args):
 
             # get predictions for different thresholds
             thresholds = torch.tensor([0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5,
-                                       0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64]).reshape(1, 15).to(device)
-            pred_choice_varying_threshold = torch.exp(seg_pred.data[:, 1]).reshape(n_sampled_points * cur_batch_size,
-                                                                                   1) >= thresholds
-            pred_choice_varying_threshold = pred_choice_varying_threshold.cpu().numpy()
+                                       0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64]).reshape(1, 15)
+            pred_choice_varying_threshold = torch.exp(seg_pred.data[:, 1].cpu()).reshape(n_sampled_points * cur_batch_size, 1) >= thresholds
+            pred_choice_varying_threshold = pred_choice_varying_threshold.numpy()
             target = target.cpu().data.numpy()
 
             # get confusion values for different thresholds
@@ -341,7 +340,7 @@ def main(args):
         log_string(
             'Epoch %d trainloss: %f, trainacc: %f, trainf1scores: %f, trainprecision: %f, trainrecall: %f, trainmIOU: %f' % (
                 epoch + 1, train_loss[epoch], train_accs[epoch], train_f1scores[epoch],
-                train_precision[epoch], train_recall[epoch]
+                train_precision[epoch], train_recall[epoch], train_miou[epoch]
             ))
 
         '''validation set'''
@@ -369,10 +368,9 @@ def main(args):
 
                 # get predictions for different thresholds
                 thresholds = torch.tensor([0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5,
-                                           0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64]).reshape(1, 15).to(device)
-                pred_choice_varying_threshold = torch.exp(seg_pred.data[:, 1]).reshape(args.npoint * cur_batch_size,
-                                                                                       1) >= thresholds
-                pred_choice_varying_threshold = pred_choice_varying_threshold.cpu().numpy()
+                                           0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64]).reshape(1, 15)
+                pred_choice_varying_threshold = torch.exp(seg_pred.data[:, 1].cpu()).reshape(args.npoint * cur_batch_size, 1) >= thresholds
+                pred_choice_varying_threshold = pred_choice_varying_threshold.numpy()
                 target = target.cpu().data.numpy()
 
                 # get confusion values for different thresholds
