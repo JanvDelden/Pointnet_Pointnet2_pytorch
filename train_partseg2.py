@@ -246,12 +246,12 @@ def main(args):
     '''
 
     for epoch in range(start_epoch, args.epoch):
-        mean_correct = []
+        correct = []
         mean_loss = []
-        f1score = []
         precision = []
         recall = []
         miou = []
+        ntotal = []
 
         '''adjust training parameters'''
         log_string('\nEpoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
@@ -302,40 +302,38 @@ def main(args):
             # get indice of threshold that corresponds to highest f1score
             precision_varying_threshold = tp / (tp + fp)
             recall_varying_threshold = tp / (tp + fn)
-            f1score_varying_threshold = 2 * (precision_varying_threshold * recall_varying_threshold) / (
-                        precision_varying_threshold + recall_varying_threshold)
-            f1score_varying_threshold = np.mean(f1score_varying_threshold, axis=0)
-            argmax_f1score = np.argmax(f1score_varying_threshold)
-            print("threshold:", thresholds[..., argmax_f1score])
 
             # append highest f1 score
-            precision.append(np.mean(precision_varying_threshold, axis=0)[argmax_f1score])
-            recall.append(np.mean(recall_varying_threshold, axis=0)[argmax_f1score])
-            f1score.append(f1score_varying_threshold[argmax_f1score])
+            precision.append(precision_varying_threshold)
+            recall.append(recall_varying_threshold)
 
             # append corresponding accuracy
-            correct = np.sum(pred_choice_varying_threshold[:, argmax_f1score] == target)
-            mean_correct.append(correct / (cur_batch_size * n_sampled_points))
+            correct.append(np.sum(pred_choice_varying_threshold == target, axis=1))
+            ntotal.append(cur_batch_size * n_sampled_points)
 
             # append corresponding iou
             iou_tree = tp / (tp + fp + fn)
             iou_not_tree = tn / (tn + fn + fp)
             ious = (iou_tree + iou_not_tree) / 2
-            ious = np.mean(ious, axis=0)
-            miou.append(ious[argmax_f1score])
+            miou.append(ious)
+
+        # choice of threshold
+        precision = np.vstack(precision)
+        recall = np.vstack(recall)
+        correct = np.vstack(correct)
+        miou = np.vstack(miou)
+        f1scores = 2 * (precision * recall) / (precision + recall)
+        f1scores = np.nanmean(f1scores, axis=0)
+        argmax = np.nanargmax(f1scores)
 
         '''After one epoch, metrics aggregated over iterations'''
-        train_accs.append(np.round(np.mean(mean_correct), 5))
-        print(train_accs[global_epoch])
-        train_f1scores.append(np.round(np.mean(f1score), 5))
-        print(train_f1scores[global_epoch])
-        train_precision.append(np.round(np.mean(precision), 5))
-        print(train_precision[global_epoch])
-        train_recall.append(np.round(np.mean(recall), 5))
-        print(train_recall[global_epoch])
+
+        train_accs.append(np.round(np.sum(correct[:, argmax]) / np.sum(ntotal), 5))
+        train_f1scores.append(np.round(np.nanmean(f1scores[argmax]), 5))
+        train_precision.append(np.round(np.nanmean(precision[:, argmax]), 5))
+        train_recall.append(np.round(np.nanmean(recall[:, argmax]), 5))
         train_loss.append(np.round(np.mean(mean_loss), 5))
-        print(train_loss[global_epoch])
-        train_miou.append(np.round(np.mean(miou), 5))
+        train_miou.append(np.round(np.mean(miou[:, argmax]), 5))
 
         log_string(
             'Epoch %d trainloss: %f, trainacc: %f, trainf1scores: %f, trainprecision: %f, trainrecall: %f, trainmIOU: %f' % (
@@ -345,9 +343,9 @@ def main(args):
 
         '''validation set'''
         with torch.no_grad():
-            mean_correct = []
+            correct = []
+            ntotal = []
             mean_loss = []
-            f1score = []
             precision = []
             recall = []
             miou = []
@@ -384,35 +382,39 @@ def main(args):
                 # get indice of threshold that corresponds to highest f1score
                 precision_varying_threshold = tp / (tp + fp)
                 recall_varying_threshold = tp / (tp + fn)
-                f1score_varying_threshold = 2 * (precision_varying_threshold * recall_varying_threshold) / (
-                        precision_varying_threshold + recall_varying_threshold)
-                f1score_varying_threshold = np.mean(f1score_varying_threshold, axis=0)
-                argmax_f1score = np.argmax(f1score_varying_threshold)
-                print("threshold:", thresholds[..., argmax_f1score])
 
                 # append highest f1 score
-                precision.append(np.mean(precision_varying_threshold, axis=0)[argmax_f1score])
-                recall.append(np.mean(recall_varying_threshold, axis=0)[argmax_f1score])
-                f1score.append(f1score_varying_threshold[argmax_f1score])
+                precision.append(precision_varying_threshold)
+                recall.append(recall_varying_threshold)
 
                 # append corresponding accuracy
-                correct = np.sum(pred_choice_varying_threshold[:, argmax_f1score] == target)
-                mean_correct.append(correct / (cur_batch_size * args.npoint))
+                correct.append(np.sum(pred_choice_varying_threshold == target, axis=1))
+                ntotal.append(cur_batch_size * args.npoint)
 
                 # append corresponding iou
                 iou_tree = tp / (tp + fp + fn)
                 iou_not_tree = tn / (tn + fn + fp)
                 ious = (iou_tree + iou_not_tree) / 2
-                ious = np.mean(ious, axis=0)
-                miou.append(ious[argmax_f1score])
+                miou.append(ious)
+
+        # choice of threshold
+        precision = np.vstack(precision)
+        recall = np.vstack(recall)
+        correct = np.vstack(correct)
+        miou = np.vstack(miou)
+        f1scores = 2 * (precision * recall) / (precision + recall)
+        f1scores = np.nanmean(f1scores, axis=0)
+        argmax = np.nanargmax(f1scores)
 
         '''After one epoch, metrics aggregated over iterations'''
-        val_accs.append(np.round(np.mean(mean_correct), 5))
-        val_f1scores.append(np.round(np.mean(f1score), 5))
-        val_precision.append(np.round(np.mean(precision), 5))
-        val_recall.append(np.round(np.mean(recall), 5))
+
+        '''After one epoch, metrics aggregated over iterations'''
+        val_accs.append(np.round(np.sum(correct[:, argmax]) / np.sum(ntotal), 5))
+        val_f1scores.append(np.round(np.nanmean(f1scores[argmax]), 5))
+        val_precision.append(np.round(np.nanmean(precision[:, argmax]), 5))
+        val_recall.append(np.round(np.nanmean(recall[:, argmax]), 5))
         val_loss.append(np.round(np.mean(mean_loss), 5))
-        val_miou.append(np.round(np.mean(miou), 5))
+        val_miou.append(np.round(np.mean(miou[:, argmax]), 5))
 
         log_string('Epoch %d valloss: %f, valacc: %f, valf1scores: %f, valprecision: %f, valrecall: %f, valmIOU: %f' % (
             epoch + 1, val_loss[epoch], val_accs[epoch], val_f1scores[epoch],
