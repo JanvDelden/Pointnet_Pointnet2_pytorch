@@ -10,14 +10,13 @@ import custom_functions.general_utils as gu
 sys.path.append("/content/Pointnet_Pointnet2_pytorch/data_utils")
 
 
-def evaluate_model(npoints, source_path):
-
+def evaluate_model(npoints, source_path, method="mean"):
     split_path = source_path + "/split/valsplit.npy"
     valindices = np.load(split_path)
     f1score, precision, recall, total, correct = [], [], [], [], []
 
-    for i in len(valindices):
-        pred, allpoints, target = multi_sample_ensemble(source_path, npoints, tree_number=i, n_samples=5)
+    for i in range(len(valindices)):
+        pred, allpoints, target = gu.multi_sample_ensemble(source_path, npoints, tree_number=i, n_samples=5, method)
         pred_choice = (pred > 0.5).astype("int")
 
         # measures
@@ -36,8 +35,7 @@ def evaluate_model(npoints, source_path):
     print("Acc:", np.sum(correct) / np.sum(total), "F1 score", np.mean(f1score), "Precision:", np.mean(precision),
           "Recall:", np.mean(recall))
 
-    return precision, recall, f1score, acc
-
+    return np.array(f1score), np.array(precision), np.array(recall), np.array(f1score), acc
 
 def to_categorical(y, num_classes):
     """ 1-hot encodes a tensor """
