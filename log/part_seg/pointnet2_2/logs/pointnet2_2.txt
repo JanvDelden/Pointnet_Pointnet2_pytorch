@@ -7,3 +7,59 @@
 Epoch 1 (1/10):
 2022-01-12 20:32:16,021 - Model - INFO - Learning rate:0.001000
 2022-01-12 20:38:06,245 - Model - INFO - Epoch 1 trainloss: 7.567700, trainacc: 0.689750, trainwacc: 0.757880, mIOU: 0.482410
+2022-01-21 14:51:06,751 - Model - INFO - PARAMETER ...
+2022-01-21 14:51:06,751 - Model - INFO - Namespace(model='pointnet2_2', batch_size=16, epoch=10, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_2', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5, weight=5.2, adaptive=True, dropout_ratio=0.8, betas=(0.9, 0.999))
+2022-01-21 14:51:06,795 - Model - INFO - The number of training data is: 150
+2022-01-21 14:51:06,795 - Model - INFO - The number of test data is: 105
+2022-01-21 14:51:06,835 - Model - INFO - No existing model, starting training from scratch...
+2022-01-21 14:51:06,846 - Model - INFO - 
+Epoch 1 (1/10):
+2022-01-21 14:51:06,846 - Model - INFO - Learning rate:0.001000
+2022-01-21 14:53:49,030 - Model - INFO - PARAMETER ...
+2022-01-21 14:53:49,030 - Model - INFO - Namespace(model='pointnet2_2', batch_size=16, epoch=10, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_2', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5, weight=5.2, adaptive=True, dropout_ratio=0.8, betas=(0.9, 0.999))
+2022-01-21 14:53:49,122 - Model - INFO - The number of training data is: 150
+2022-01-21 14:53:49,123 - Model - INFO - The number of test data is: 105
+2022-01-21 14:53:49,166 - Model - INFO - No existing model, starting training from scratch...
+2022-01-21 14:53:49,191 - Model - INFO - 
+Epoch 1 (1/10):
+2022-01-21 14:53:49,191 - Model - INFO - Learning rate:0.001000
+2022-01-21 14:54:42,591 - Model - INFO - PARAMETER ...
+2022-01-21 14:54:42,591 - Model - INFO - Namespace(model='pointnet2_2', batch_size=16, epoch=10, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_2', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5, weight=5.2, adaptive=True, dropout_ratio=0.8, betas=(0.9, 0.999))
+2022-01-21 14:54:42,622 - Model - INFO - The number of training data is: 150
+2022-01-21 14:54:42,622 - Model - INFO - The number of test data is: 105
+2022-01-21 14:54:42,650 - Model - INFO - No existing model, starting training from scratch...
+2022-01-21 14:54:42,652 - Model - INFO - 
+Epoch 1 (1/10):
+2022-01-21 14:54:42,652 - Model - INFO - Learning rate:0.001000
+2022-01-21 14:54:48,758 - Model - INFO - PARAMETER ...
+2022-01-21 14:54:48,758 - Model - INFO - Namespace(model='pointnet2_2', batch_size=16, epoch=10, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_2', decay_rate=0.0001, npoint=2048, normal=True, step_size=20, lr_decay=0.5, weight=5.2, adaptive=True, dropout_ratio=0.8, betas=(0.9, 0.999))
+2022-01-21 14:54:48,791 - Model - INFO - The number of training data is: 150
+2022-01-21 14:54:48,791 - Model - INFO - The number of test data is: 105
+2022-01-21 14:54:48,823 - Model - INFO - No existing model, starting training from scratch...
+2022-01-21 14:54:48,838 - Model - INFO - 
+Epoch 1 (1/10):
+2022-01-21 14:54:48,838 - Model - INFO - Learning rate:0.001000
+2022-01-21 15:07:55,869 - Model - INFO - PARAMETER ...
+2022-01-21 15:07:55,869 - Model - INFO - Namespace(model='pointnet2_2', batch_size=16, epoch=10, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_2', decay_rate=0.0001, npoint=50, normal=True, step_size=20, lr_decay=0.5, weight=5.2, adaptive=True, dropout_ratio=0.8, betas=(0.9, 0.999))
+2022-01-21 15:07:55,916 - Model - INFO - The number of training data is: 150
+2022-01-21 15:07:55,916 - Model - INFO - The number of test data is: 105
+2022-01-21 15:07:55,954 - Model - INFO - No existing model, starting training from scratch...
+2022-01-21 15:07:55,978 - Model - INFO - 
+Epoch 1 (1/10):
+2022-01-21 15:07:55,978 - Model - INFO - Learning rate:0.001000
+2022-01-21 15:10:07,483 - Model - INFO - PARAMETER ...
+2022-01-21 15:10:07,483 - Model - INFO - Namespace(model='pointnet2_2', batch_size=16, epoch=10, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_2', decay_rate=0.0001, npoint=400, normal=True, step_size=20, lr_decay=0.5, weight=5.2, adaptive=True, dropout_ratio=0.8, betas=(0.9, 0.999))
+2022-01-21 15:10:07,516 - Model - INFO - The number of training data is: 150
+2022-01-21 15:10:07,516 - Model - INFO - The number of test data is: 105
+2022-01-21 15:10:07,548 - Model - INFO - No existing model, starting training from scratch...
+2022-01-21 15:10:07,548 - Model - INFO - 
+Epoch 1 (1/10):
+2022-01-21 15:10:07,548 - Model - INFO - Learning rate:0.001000
+2022-01-21 15:10:42,197 - Model - INFO - PARAMETER ...
+2022-01-21 15:10:42,197 - Model - INFO - Namespace(model='pointnet2_2', batch_size=16, epoch=10, learning_rate=0.001, gpu='0', optimizer='Adam', log_dir='pointnet2_2', decay_rate=0.0001, npoint=800, normal=True, step_size=20, lr_decay=0.5, weight=5.2, adaptive=True, dropout_ratio=0.8, betas=(0.9, 0.999))
+2022-01-21 15:10:42,217 - Model - INFO - The number of training data is: 150
+2022-01-21 15:10:42,217 - Model - INFO - The number of test data is: 105
+2022-01-21 15:10:42,248 - Model - INFO - No existing model, starting training from scratch...
+2022-01-21 15:10:42,264 - Model - INFO - 
+Epoch 1 (1/10):
+2022-01-21 15:10:42,264 - Model - INFO - Learning rate:0.001000

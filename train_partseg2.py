@@ -326,15 +326,15 @@ def main(args):
 
         '''After one epoch, metrics aggregated over iterations'''
         train_accs.append(np.round(np.mean(mean_correct), 5))
-        print(train_accs[epoch])
+        print(train_accs[global_epoch])
         train_f1scores.append(np.round(np.mean(f1score), 5))
-        print(train_f1scores[epoch])
+        print(train_f1scores[global_epoch])
         train_precision.append(np.round(np.mean(precision), 5))
-        print(train_precision[epoch])
+        print(train_precision[global_epoch])
         train_recall.append(np.round(np.mean(recall), 5))
-        print(train_recall[epoch])
+        print(train_recall[global_epoch])
         train_loss.append(np.round(np.mean(mean_loss), 5))
-        print(train_loss[epoch])
+        print(train_loss[global_epoch])
         train_miou.append(np.round(np.mean(miou), 5))
 
         log_string(
@@ -411,7 +411,7 @@ def main(args):
         val_precision.append(np.round(np.mean(precision), 5))
         val_recall.append(np.round(np.mean(recall), 5))
         val_loss.append(np.round(np.mean(mean_loss), 5))
-        train_miou.append(np.round(np.mean(miou), 5))
+        val_miou.append(np.round(np.mean(miou), 5))
 
         log_string('Epoch %d valloss: %f, valacc: %f, valf1scores: %f, valprecision: %f, valrecall: %f, valmIOU: %f' % (
             epoch + 1, val_loss[epoch], val_accs[epoch], val_f1scores[epoch],
