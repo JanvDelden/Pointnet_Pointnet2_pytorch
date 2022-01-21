@@ -3,6 +3,7 @@ import shutil
 import pathlib
 import sys
 import importlib
+import os
 
 def get_device(cuda_preference=True):
     print('cuda available:', torch.cuda.is_available(),
@@ -44,20 +45,14 @@ def get_model(source_path):
     model_name = set(os.listdir(source_path)) - set(["pointnet2_utils.py", "logs", "checkpoints", "performance", "split"])
     model_name = list(model_name)[0]
     model_name = model_name[0:-3]
-    source_path = source_path + "/."
-    destination_path = "/content/Pointnet_Pointnet2_pytorch/log/part_seg/"
-    destination_path = destination_path + model_name
-    shutil.rmtree(destination_path)
-    pathlib.Path(destination_path).mkdir(parents=True, exist_ok=True)
-    shutil.copy(source_path, destination_path)
-    sys.path.append(destination_path)
+    source_path
+    sys.path.append(source_path)
     model = importlib.import_module(model_name)
 
-# load learned model
-def inplace_relu(m):
-    classname = m.__class__.__name__
-    if classname.find('ReLU') != -1:
-        m.inplace=True
+    def inplace_relu(m):
+        classname = m.__class__.__name__
+        if classname.find('ReLU') != -1:
+            m.inplace=True
 
     classifier = model.get_model(2, normal_channel=False).to(device)
     classifier.apply(inplace_relu)
@@ -66,6 +61,7 @@ def inplace_relu(m):
     checkpoint = torch.load(model_path)
     classifier.load_state_dict(checkpoint['model_state_dict'])
 
+    return classifier
 
 
 
