@@ -5,17 +5,21 @@ import importlib
 import shutil
 import numpy as np
 import custom_functions.transform as t
-import tqdm
+from tqdm import tqdm
 import custom_functions.general_utils as gu
 sys.path.append("/content/Pointnet_Pointnet2_pytorch/data_utils")
 
 
 def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_samples=5):
-    split_path = source_path + "/split/valsplit.npy"
+    if ensemble == "model":
+        split_path = source_path[0] + "/split/valsplit.npy"
+    else:
+        split_path = source_path + "/split/valsplit.npy"
+
     valindices = np.load(split_path)
     f1score, precision, recall, total, correct = [], [], [], [], []
 
-    for i in range(len(valindices)):
+    for i in tqdm(range(len(valindices))):
         if ensemble == "sample":
             pred, allpoints, target = gu.multi_sample_ensemble(source_path, npoints, tree_number=i, n_samples=n_samples, method=method)
         elif ensemble == "model":
@@ -37,6 +41,7 @@ def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_sam
         total.append(len(pred))
 
     acc = np.array(correct) / np.array(total)
+    print("")
     print("Acc:", np.sum(correct) / np.sum(total), "F1 score", np.mean(f1score), "Precision:", np.mean(precision),
           "Recall:", np.mean(recall))
 
