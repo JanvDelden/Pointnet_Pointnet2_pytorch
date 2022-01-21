@@ -160,4 +160,3 @@ def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method
         prediction = np.mean(prediction, axis=1)
 
     return prediction, allpoints, targets
-
