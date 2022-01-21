@@ -119,7 +119,8 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
     split_path = source_path + "/split/valsplit.npy"
     root = "/content/Pointnet_Pointnet2_pytorch/data/"
 
-    device = get_device()
+    use_cuda = torch.cuda.is_available()
+    device = torch.device('cuda:0' if use_cuda else 'cpu')
     classifier = get_model(source_path, device)
     dataset = dset.PartNormalDataset(root=root,
                                      npoints=npoints,
@@ -144,16 +145,20 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
     return prediction, allpoints, targets
 
 
-def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5):
+def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method="mean"):
 
     predictions = []
 
     for source_path in source_paths:
-        prediction, allpoints, targets = multi_sample_ensemble(source_path, npoints, tree_number, n_samples)
+        prediction, allpoints, targets = multi_sample_ensemble(source_path, npoints, tree_number, n_samples, method)
         predictions.append(prediction)
 
-    predictions = np.array(predictions)
-    predictions = np.mean(predictions, axis=0)
+    preds = np.array(predictions).T
+    if method == "mean":
+        prediction = np.mean(preds, axis=1)
+    elif method == "majority":
+        prediction = (preds > 0.5).astype("int")
+        prediction = np.mean(prediction, axis=1)
 
-    return predictions, allpoints, targets
+    return prediction, allpoints, targets
 

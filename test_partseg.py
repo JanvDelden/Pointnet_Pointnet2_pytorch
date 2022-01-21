@@ -10,13 +10,18 @@ import custom_functions.general_utils as gu
 sys.path.append("/content/Pointnet_Pointnet2_pytorch/data_utils")
 
 
-def evaluate_model(npoints, source_path, method="mean"):
+def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_samples=5):
     split_path = source_path + "/split/valsplit.npy"
     valindices = np.load(split_path)
     f1score, precision, recall, total, correct = [], [], [], [], []
 
     for i in range(len(valindices)):
-        pred, allpoints, target = gu.multi_sample_ensemble(source_path, npoints, tree_number=i, n_samples=5, method)
+        if ensemble == "sample":
+            pred, allpoints, target = gu.multi_sample_ensemble(source_path, npoints, tree_number=i, n_samples=n_samples, method=method)
+        elif ensemble == "model":
+            # source path needs to be a list for this
+            pred, allpoints, target = gu.multi_model_ensemble(source_path, npoints, tree_number=i, n_samples=n_samples, method=method)
+
         pred_choice = (pred > 0.5).astype("int")
 
         # measures
@@ -35,11 +40,4 @@ def evaluate_model(npoints, source_path, method="mean"):
     print("Acc:", np.sum(correct) / np.sum(total), "F1 score", np.mean(f1score), "Precision:", np.mean(precision),
           "Recall:", np.mean(recall))
 
-    return np.array(f1score), np.array(precision), np.array(recall), np.array(f1score), acc
-
-def to_categorical(y, num_classes):
-    """ 1-hot encodes a tensor """
-    new_y = torch.eye(num_classes)[y.cpu().data.numpy(), ]
-    if (y.is_cuda):
-        return new_y.cuda()
-    return new_y
+    return np.array(f1score), np.array(precision), np.array(recall), acc
