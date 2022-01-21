@@ -6,6 +6,8 @@ import importlib
 import os
 from sklearn.neighbors import NearestNeighbors
 import transform as t
+import ShapeNetDataLoader as dset
+import numpy as np
 
 
 def get_device(cuda_preference=True):
@@ -137,11 +139,11 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5):
 
     return prediction, allpoints, targets
 
-def multi_model_ensemble(source_paths, npoints, tree_number, n_samples):
+def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5):
 
     predictions = []
 
-    for i in source_paths:
+    for source_path in source_paths:
         prediction, allpoints, targets = multi_sample_ensemble(source_path, npoints, tree_number, n_samples)
         predictions.append(prediction)
 
