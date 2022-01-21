@@ -147,6 +147,17 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
 
 def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method="mean"):
 
+    # if best thresholds are available, choose them
+    best_thresholds = []
+
+    for source_path in source_paths:
+        try:
+            checkpoint = torch.load(source_path + '/checkpoints/best_model.pth')
+            best_threshold = checkpoint["best_threshold"]
+            best_thresholds.append(best_threshold)
+        except:
+            best_thresholds.append(0.5)
+
     predictions = []
 
     for source_path in source_paths:
@@ -157,7 +168,8 @@ def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method
     if method == "mean":
         prediction = np.mean(preds, axis=1)
     elif method == "majority":
-        prediction = (preds > 0.5).astype("int")
-        prediction = np.mean(prediction, axis=1)
+        prediction = (preds > best_thresholds).astype("int")
+        prediction = np.sum((prediction / prediction.shape[1]), axis=1)
+        prediction = (prediction >= 0.5).astype("int")
 
-    return prediction, allpoints, targets
+    return prediction, allpoints, targets, best_thresholds
