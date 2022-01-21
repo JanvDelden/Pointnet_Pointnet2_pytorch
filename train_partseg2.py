@@ -247,11 +247,11 @@ def main(args):
 
     for epoch in range(start_epoch, args.epoch):
         correct = []
+        ntotal = []
         mean_loss = []
         precision = []
         recall = []
         miou = []
-        ntotal = []
 
         '''adjust training parameters'''
         log_string('\nEpoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
@@ -286,8 +286,8 @@ def main(args):
             optimizer.step()  # this is different from test
 
             # get predictions for different thresholds
-            thresholds = torch.tensor([0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5,
-                                       0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64]).reshape(1, 1, 15)
+            thresholds = torch.tensor([0.3, 0.32, 0.34, 0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5,
+                                       0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7]).reshape(1, 1, 21)
             pred_choice_varying_threshold = torch.exp(seg_pred.data[:, 1].cpu()).reshape(cur_batch_size, n_sampled_points, 1) >= thresholds
             pred_choice_varying_threshold = pred_choice_varying_threshold.numpy()
             target = target.cpu().data.numpy().reshape(cur_batch_size, n_sampled_points, 1)
@@ -299,19 +299,19 @@ def main(args):
             tn = np.sum(np.logical_and(target == 0, pred_choice_varying_threshold == 0), axis=1)
 
 
-            # get indice of threshold that corresponds to highest f1score
+            # calculate confusion values for every sample in batch for the different thresholds
             precision_varying_threshold = tp / (tp + fp)
             recall_varying_threshold = tp / (tp + fn)
 
-            # append highest f1 score
+            # append precision
             precision.append(precision_varying_threshold)
             recall.append(recall_varying_threshold)
 
-            # append corresponding accuracy
+            # append correct classifications and count number of points
             correct.append(np.sum(pred_choice_varying_threshold == target, axis=1))
             ntotal.append(cur_batch_size * n_sampled_points)
 
-            # append corresponding iou
+            # append iou
             iou_tree = tp / (tp + fp + fn)
             iou_not_tree = tn / (tn + fn + fp)
             ious = (iou_tree + iou_not_tree) / 2
@@ -329,7 +329,7 @@ def main(args):
         '''After one epoch, metrics aggregated over iterations'''
 
         train_accs.append(np.round(np.sum(correct[:, argmax]) / np.sum(ntotal), 5))
-        train_f1scores.append(np.round(np.nanmean(f1scores[argmax]), 5))
+        train_f1scores.append(np.round(f1scores[argmax], 5))
         train_precision.append(np.round(np.nanmean(precision[:, argmax]), 5))
         train_recall.append(np.round(np.nanmean(recall[:, argmax]), 5))
         train_loss.append(np.round(np.mean(mean_loss), 5))
@@ -365,33 +365,33 @@ def main(args):
                 mean_loss.append(loss.item())
 
                 # get predictions for different thresholds
-                thresholds = torch.tensor([0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5,
-                                           0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64]).reshape(1, 1, 15)
+                thresholds = torch.tensor([0.3, 0.32, 0.34, 0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5,
+                                           0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7]).reshape(1, 1, 21)
                 pred_choice_varying_threshold = torch.exp(seg_pred.data[:, 1].cpu()).reshape(cur_batch_size,
                                                                                              args.npoint,
                                                                                              1) >= thresholds
                 pred_choice_varying_threshold = pred_choice_varying_threshold.numpy()
                 target = target.cpu().data.numpy().reshape(cur_batch_size, args.npoint, 1)
 
-                # get confusion values for different thresholds
+                # calculate confusion values for every sample in batch for the different thresholds
                 tp = np.sum(np.logical_and(target == 1, pred_choice_varying_threshold == 1), axis=1)
                 fn = np.sum(np.logical_and(target == 1, pred_choice_varying_threshold == 0), axis=1)
                 fp = np.sum(np.logical_and(target == 0, pred_choice_varying_threshold == 1), axis=1)
                 tn = np.sum(np.logical_and(target == 0, pred_choice_varying_threshold == 0), axis=1)
 
-                # get indice of threshold that corresponds to highest f1score
+                # calculate confusion values for every sample in batch for the different thresholds
                 precision_varying_threshold = tp / (tp + fp)
                 recall_varying_threshold = tp / (tp + fn)
 
-                # append highest f1 score
+                # append precision
                 precision.append(precision_varying_threshold)
                 recall.append(recall_varying_threshold)
 
-                # append corresponding accuracy
+                # append correct classifications and count number of points
                 correct.append(np.sum(pred_choice_varying_threshold == target, axis=1))
                 ntotal.append(cur_batch_size * args.npoint)
 
-                # append corresponding iou
+                # append iou
                 iou_tree = tp / (tp + fp + fn)
                 iou_not_tree = tn / (tn + fn + fp)
                 ious = (iou_tree + iou_not_tree) / 2
@@ -403,22 +403,26 @@ def main(args):
         correct = np.vstack(correct)
         miou = np.vstack(miou)
         f1scores = 2 * (precision * recall) / (precision + recall)
+
+        f1scores_nan = np.isnan(np.sum(f1scores))
+
         f1scores = np.nanmean(f1scores, axis=0)
         argmax = np.nanargmax(f1scores)
+        argmax_threshold = thresholds[argmax]
 
         '''After one epoch, metrics aggregated over iterations'''
 
         '''After one epoch, metrics aggregated over iterations'''
         val_accs.append(np.round(np.sum(correct[:, argmax]) / np.sum(ntotal), 5))
-        val_f1scores.append(np.round(np.nanmean(f1scores[argmax]), 5))
+        val_f1scores.append(np.round(f1scores[argmax], 5))
         val_precision.append(np.round(np.nanmean(precision[:, argmax]), 5))
         val_recall.append(np.round(np.nanmean(recall[:, argmax]), 5))
         val_loss.append(np.round(np.mean(mean_loss), 5))
         val_miou.append(np.round(np.mean(miou[:, argmax]), 5))
 
-        log_string('Epoch %d valloss: %f, valacc: %f, valf1scores: %f, valprecision: %f, valrecall: %f, valmIOU: %f' % (
+        log_string('Epoch %d valloss: %f, valacc: %f, valf1scores: %f, valprecision: %f, valrecall: %f, valmIOU: %f, best_threshold: %f, nan-f1score: %r' % (
             epoch + 1, val_loss[epoch], val_accs[epoch], val_f1scores[epoch],
-            val_precision[epoch], val_recall[epoch], val_miou[epoch]
+            val_precision[epoch], val_recall[epoch], val_miou[epoch], argmax_threshold, f1scores_nan
         ))
 
         if val_f1scores[epoch] >= np.max(val_f1scores):
@@ -441,6 +445,7 @@ def main(args):
                 'val_loss': val_loss,
                 'model_state_dict': classifier.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
+                'best_threshold': argmax_threshold
             }
             torch.save(state, savepath)
             log_string('Saving model....')
