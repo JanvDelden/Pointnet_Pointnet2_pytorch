@@ -1,6 +1,4 @@
 import torch
-import shutil
-import pathlib
 import sys
 import importlib
 import os
@@ -106,6 +104,17 @@ def extrapolate(pred_probabilities, neighbours_indices):
     return np.mean(mapped_probabilities, axis=1)
 
 
+def compute_certainty_score(probability, threshold):
+    normed_probability = probability - threshold
+
+    if normed_probability < 0:
+        certainty_score = normed_probability / threshold
+    else:
+        certainty_score = normed_probability / (1 - threshold)
+
+    return certainty_score
+
+
 def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method="mean"):
     split_path = source_path + "/split/valsplit.npy"
     root = "/content/Pointnet_Pointnet2_pytorch/data/"
@@ -136,11 +145,13 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
         preds[:, i] = extrapolate(pred_probabilities, indices)
 
     if method == "mean":
-        prediction = np.mean(preds, axis=1)
+        certainty_scores = np.vectorize(compute_certainty_score)(preds, best_threshold)
+        prediction = np.mean(certainty_scores, axis=1)
+
     elif method == "majority":
         prediction = (preds > best_threshold).astype("int")
-        prediction = np.sum((prediction / prediction.shape[1]), axis=1)
-        prediction = (prediction >= 0.5).astype("int")
+        prediction = np.sum(prediction, axis=1)
+        prediction = (prediction - (preds.shape[1] / 2)) / (preds.shape[1] / 2)
 
     return prediction, allpoints, targets, best_threshold
 
@@ -166,10 +177,13 @@ def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method
 
     preds = np.array(predictions).T
     if method == "mean":
-        prediction = np.mean(preds, axis=1)
+        certainty_scores = np.vectorize(compute_certainty_score)(preds, best_thresholds)
+        prediction = np.mean(certainty_scores, axis=1)
+
     elif method == "majority":
         prediction = (preds > best_thresholds).astype("int")
-        prediction = np.sum((prediction / prediction.shape[1]), axis=1)
-        prediction = (prediction >= 0.5).astype("int")
+        prediction = np.sum(prediction, axis=1)
+        prediction = (prediction - (preds.shape[1] / 2)) / (preds.shape[1] / 2)
+
 
     return prediction, allpoints, targets, best_thresholds
