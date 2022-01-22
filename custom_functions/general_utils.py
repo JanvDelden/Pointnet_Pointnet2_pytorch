@@ -119,7 +119,7 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
     split_path = source_path + "/split/valsplit.npy"
     root = "/content/Pointnet_Pointnet2_pytorch/data/"
 
-    # if best threshold is available, choose it
+    # if best threshold is available, choose it, otherwise simply use 0.5 as threshold
     try:
         checkpoint = torch.load(source_path + '/checkpoints/best_model.pth')
         best_threshold = checkpoint["best_threshold"]
@@ -158,7 +158,7 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
 
 def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method="mean"):
 
-    # if best thresholds are available, choose them
+    # if best thresholds are available, choose them, otherwise simply use 0.5 as threshold
     best_thresholds = []
 
     for source_path in source_paths:
