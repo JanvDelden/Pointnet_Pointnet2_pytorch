@@ -31,7 +31,7 @@ class get_model(nn.Module):
 
         # feature propagation layers aggregate the information encoded by the set abstraction layers and upscale to
         # provide predictions for the total number of points
-        self.fp4 = PointNetFeaturePropagation(in_channel=1024+256+256+256, mlp=[512, 256])
+        self.fp4 = PointNetFeaturePropagation(in_channel=1024+384+384+384, mlp=[512, 256])
         self.fp3 = PointNetFeaturePropagation(in_channel=256+256+256+256, mlp=[256, 256])
         self.fp2 = PointNetFeaturePropagation(in_channel=256+64+128+128+128, mlp=[256, 128])
         self.fp1 = PointNetFeaturePropagation(in_channel=128+6+1+additional_channel, mlp=[128, 128])
