@@ -220,31 +220,57 @@ def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method
     return prediction, allpoints, targets, best_thresholds
 
 
-def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples=5, method="mean", position_path=position_path):
-
+def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples=5, method="mean",
+                        position_path=position_path):
     # determine tree numbers where a prediction is needed
     with open(position_path, "r") as f:
         positions = json.load(f)
     split = np.load(source_paths[0] + "/split/valsplit.npy")
+    old_number = tree_number
+    tree_number = split[tree_number]
 
     positions = np.array([i[1] for i in positions])
-    center = positions[tree_number] # todo verify that this is correct
-    distances = np.linalg.norm(positions[:2] - center[:2], ord=None, axis=1)
+    center = positions[tree_number]  # todo verify that this is correct
+    distances = np.linalg.norm(positions[:, :2] - center[:2], ord=None, axis=1)
     tree_indices = np.argwhere(distances < radius)
+    tree_indices = tree_indices.reshape(len(tree_indices))
+    print(tree_indices)
+
+    # only choose tree_indices in valsplit
+    ids = []
+    for index in tree_indices:
+        test = np.argwhere(index == split)
+        if len(test) > 0:
+            ids.append(test[0, 0])
+    print(ids)
 
     # generate predictions
     all_preds = []
-    for tree in tree_indices:
-        pred, points = multi_model_ensemble(source_paths, npoints, tree, n_samples, method)[:2]
-        if tree == tree_number:
-            relevant_points = dict(map(tuple, points))
-            prediction = dict(map(tuple, pred))
+    assert len(ids) > 0
+    for tree in ids:
+        pred, points = gu.multi_model_ensemble(source_paths, npoints, tree, n_samples, method)[:2]
+        if tree == old_number:
+            relevant_points = tuple(tuple(x) for x in points.tolist())
+            prediction = tuple(x for x in pred.tolist())
         else:
-            all_preds.append((set(map(tuple, points)), pred))
+            all_preds.append((points, pred))
 
-    ensemble = np.empty((len(prediction, 3)))
-    for i in range(len(tree_indices)):
-        intersection = relevant_points - all_preds[i][0]
-        ensemble[i] = all_preds[i][1][np.argwhere(intersection)]
+    predcollation = dict(((x, [y]) for x, y in zip(relevant_points, prediction)))
+    setpoints = set(relevant_points)
 
+    for points, pred in all_preds:
+        intersection = setpoints & set(tuple(tuple(x) for x in test_points.tolist()))
+        for point in intersection:
+            predcollation[point].append(pred[point == points])
+
+    allpoints, allpreds = [], []
+    for key, value in predcollation.items():
+        if len(value) > 1:
+            value = np.argmax(value) == 0
+        else:
+            value = value[0]
+        allpoints.append(key)
+        allpreds.append(value)
+
+    return np.array(allpoints), np.array(allpreds)
 
