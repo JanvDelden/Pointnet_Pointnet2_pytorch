@@ -44,6 +44,34 @@ def gen_split(percentages=(0.5, 0.2),
         np.save(path, index_subset)
         start = stop
 
+def gen_spatial_split(percentages=(0.7, 0.3),
+                      paths=("/content/Pointnet_Pointnet2_pytorch/data/trainsplit.npy",
+                             "/content/Pointnet_Pointnet2_pytorch/data/valsplit.npy"),
+                      position_path="C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/Pointnet_Pointnet2_pytorch/data/positions_attempt2.json",
+                      sample_number=252,
+                      shuffle=True,
+                      seed=1):
+    # constructs a rectangle that encompasses a part of the forest given by percentages
+    import random
+    import numpy as np
+    with open(position_path, "r") as f:
+        positions = json.load(f)
+
+    positions = np.array([i[1] for i in positions])
+    minval, maxval = np.amin(positions, axis=0)[0:2], np.amax(positions, axis=0)[0:2]
+    sidelength = np.sqrt(percentages[1]) * (maxval - minval)
+    if shuffle:
+        random.seed(seed)
+        offset = np.array([random.random(), random.random()])
+        offset = offset * (maxval - minval - sidelength)
+        isin = np.all(np.logical_and(positions[:, :2] > minval + offset, positions[:, :2] < minval + sidelength + offset), axis=1)
+    else:
+        isin = np.all(positions[:,:2] < minval[:2] + sidelength, axis=1)
+
+    indices = np.arange(0, len(positions))
+    np.save(indices[isin], paths[0])
+    np.save(indices[np.invert(isin)], paths[1])
+
 
 def get_model(source_path, device):
     model_name = set(os.listdir(source_path)) - set(
