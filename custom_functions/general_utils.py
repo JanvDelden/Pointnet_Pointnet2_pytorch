@@ -6,6 +6,8 @@ from sklearn.neighbors import NearestNeighbors
 import transform as t
 import ShapeNetDataLoader as dset
 import numpy as np
+import json
+position_path = "/content/drive/MyDrive/Colab/tree_learning/data/positions_attempt2.json"
 
 
 def get_device(cuda_preference=True):
@@ -42,10 +44,11 @@ def gen_split(percentages=(0.5, 0.2),
         np.save(path, index_subset)
         start = stop
 
+
 def gen_spatial_split(percentages=(0.7, 0.3),
                       paths=("/content/Pointnet_Pointnet2_pytorch/data/trainsplit.npy",
                              "/content/Pointnet_Pointnet2_pytorch/data/valsplit.npy"),
-                      position_path="C:/Users/Jan Schneider/OneDrive/Studium/statistisches Praktikum/Pointnet_Pointnet2_pytorch/data/positions_attempt2.json",
+                      position_path=position_path,
                       sample_number=252,
                       shuffle=True,
                       seed=1):
@@ -69,6 +72,8 @@ def gen_spatial_split(percentages=(0.7, 0.3),
     indices = np.arange(0, len(positions))
     np.save(indices[isin], paths[0])
     np.save(indices[np.invert(isin)], paths[1])
+
+    return sidelength, offset
 
 
 def get_model(source_path, device):
@@ -154,7 +159,6 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
     except:
         best_threshold = 0.5
 
-
     use_cuda = torch.cuda.is_available()
     device = torch.device('cuda:0' if use_cuda else 'cpu')
     classifier = get_model(source_path, device)
@@ -200,7 +204,7 @@ def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method
     predictions = []
 
     for source_path in source_paths:
-        prediction, allpoints, targets = multi_sample_ensemble(source_path, npoints, tree_number, n_samples, method)
+        prediction, allpoints, targets, _ = multi_sample_ensemble(source_path, npoints, tree_number, n_samples, method)
         predictions.append(prediction)
 
     preds = np.array(predictions).T
@@ -213,5 +217,34 @@ def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method
         prediction = np.sum(prediction, axis=1)
         prediction = (prediction - (preds.shape[1] / 2)) / (preds.shape[1] / 2)
 
-
     return prediction, allpoints, targets, best_thresholds
+
+
+def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples=5, method="mean", position_path=position_path):
+
+    # determine tree numbers where a prediction is needed
+    with open(position_path, "r") as f:
+        positions = json.load(f)
+    split = np.load(source_paths[0] + "/split/valsplit.npy")
+
+    positions = np.array([i[1] for i in positions])
+    center = positions[tree_number] # todo verify that this is correct
+    distances = np.linalg.norm(positions[:2] - center[:2], ord=None, axis=1)
+    tree_indices = np.argwhere(distances < radius)
+
+    # generate predictions
+    all_preds = []
+    for tree in tree_indices:
+        pred, points = multi_model_ensemble(source_paths, npoints, tree, n_samples, method)[:2]
+        if tree == tree_number:
+            relevant_points = dict(map(tuple, points))
+            prediction = dict(map(tuple, pred))
+        else:
+            all_preds.append((set(map(tuple, points)), pred))
+
+    ensemble = np.empty((len(prediction, 3)))
+    for i in range(len(tree_indices)):
+        intersection = relevant_points - all_preds[i][0]
+        ensemble[i] = all_preds[i][1][np.argwhere(intersection)]
+
+
