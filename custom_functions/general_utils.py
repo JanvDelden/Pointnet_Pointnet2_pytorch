@@ -70,8 +70,8 @@ def gen_spatial_split(percentages=(0.7, 0.3),
         isin = np.all(positions[:,:2] < minval[:2] + sidelength, axis=1)
 
     indices = np.arange(0, len(positions))
-    np.save(indices[isin], paths[0])
-    np.save(indices[np.invert(isin)], paths[1])
+    np.save(paths[0], indices[isin])
+    np.save(paths[1], indices[np.invert(isin)])
 
     return sidelength, offset
 
