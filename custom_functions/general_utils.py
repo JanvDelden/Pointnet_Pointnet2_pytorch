@@ -1,6 +1,4 @@
 import torch
-import shutil
-import pathlib
 import sys
 import importlib
 import os
@@ -107,7 +105,7 @@ def gen_pred(classifier, tree_number, treedataset, device):
     def to_categorical(y, num_classes):
         """ 1-hot encodes a tensor """
         new_y = torch.eye(num_classes)[y.cpu().data.numpy(),]
-        if (y.is_cuda):
+        if y.is_cuda:
             return new_y.cuda()
         return new_y
 
@@ -115,15 +113,7 @@ def gen_pred(classifier, tree_number, treedataset, device):
         classifier.eval()
         result = classifier(points, to_categorical(label, 1))[0]
 
-    preds = torch.argmax(result[0], axis=1)
-    points = points[0].T
-    target = target[0]
-    points = points[:, :3]
-    points = points.detach().cpu().numpy()
-    preds = preds.detach().cpu().numpy()
-    target = target.detach().cpu().numpy()
-    m = torch.nn.Softmax()
-    pred_probabilities = m(result[0])[:, 1].detach().cpu().numpy()
+    pred_probabilities = torch.exp(result[0])[:, 1].detach().cpu().numpy()
 
     return pred_probabilities, upoints
 
@@ -142,9 +132,28 @@ def extrapolate(pred_probabilities, neighbours_indices):
     return np.mean(mapped_probabilities, axis=1)
 
 
+def compute_certainty_score(probability, threshold):
+    normed_probability = probability - threshold
+
+    if normed_probability < 0:
+        certainty_score = normed_probability / threshold
+    else:
+        certainty_score = normed_probability / (1 - threshold)
+
+    return certainty_score
+
+
 def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method="mean"):
     split_path = source_path + "/split/valsplit.npy"
     root = "/content/Pointnet_Pointnet2_pytorch/data/"
+
+    # if best threshold is available, choose it, otherwise simply use 0.5 as threshold
+    try:
+        checkpoint = torch.load(source_path + '/checkpoints/best_model.pth')
+        best_threshold = checkpoint["best_threshold"]
+    except:
+        best_threshold = 0.5
+
 
     use_cuda = torch.cuda.is_available()
     device = torch.device('cuda:0' if use_cuda else 'cpu')
@@ -164,15 +173,29 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
         preds[:, i] = extrapolate(pred_probabilities, indices)
 
     if method == "mean":
-        prediction = np.mean(preds, axis=1)
-    elif method == "majority":
-        prediction = (preds > 0.5).astype("int")
-        prediction = np.mean(prediction, axis=1)
+        certainty_scores = np.vectorize(compute_certainty_score)(preds, best_threshold)
+        prediction = np.mean(certainty_scores, axis=1)
 
-    return prediction, allpoints, targets
+    elif method == "majority":
+        prediction = (preds > best_threshold).astype("int")
+        prediction = np.sum(prediction, axis=1)
+        prediction = (prediction - (preds.shape[1] / 2)) / (preds.shape[1] / 2)
+
+    return prediction, allpoints, targets, best_threshold
 
 
 def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method="mean"):
+
+    # if best thresholds are available, choose them, otherwise simply use 0.5 as threshold
+    best_thresholds = []
+
+    for source_path in source_paths:
+        try:
+            checkpoint = torch.load(source_path + '/checkpoints/best_model.pth')
+            best_threshold = checkpoint["best_threshold"]
+            best_thresholds.append(best_threshold)
+        except:
+            best_thresholds.append(0.5)
 
     predictions = []
 
@@ -182,10 +205,13 @@ def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method
 
     preds = np.array(predictions).T
     if method == "mean":
-        prediction = np.mean(preds, axis=1)
+        certainty_scores = np.vectorize(compute_certainty_score)(preds, best_thresholds)
+        prediction = np.mean(certainty_scores, axis=1)
+
     elif method == "majority":
-        prediction = (preds > 0.5).astype("int")
-        prediction = np.mean(prediction, axis=1)
+        prediction = (preds > best_thresholds).astype("int")
+        prediction = np.sum(prediction, axis=1)
+        prediction = (prediction - (preds.shape[1] / 2)) / (preds.shape[1] / 2)
 
-    return prediction, allpoints, targets
 
+    return prediction, allpoints, targets, best_thresholds

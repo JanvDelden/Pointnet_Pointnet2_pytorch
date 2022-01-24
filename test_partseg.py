@@ -21,12 +21,12 @@ def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_sam
 
     for i in tqdm(range(len(valindices))):
         if ensemble == "sample":
-            pred, allpoints, target = gu.multi_sample_ensemble(source_path, npoints, tree_number=i, n_samples=n_samples, method=method)
+            pred, allpoints, target, best_thresholds = gu.multi_sample_ensemble(source_path, npoints, tree_number=i, n_samples=n_samples, method=method)
         elif ensemble == "model":
             # source path needs to be a list for this
-            pred, allpoints, target = gu.multi_model_ensemble(source_path, npoints, tree_number=i, n_samples=n_samples, method=method)
+            pred, allpoints, target, best_thresholds = gu.multi_model_ensemble(source_path, npoints, tree_number=i, n_samples=n_samples, method=method)
 
-        pred_choice = (pred > 0.5).astype("int")
+        pred_choice = (pred > 0).astype("int")
 
         # measures
         tp = np.sum(np.logical_and(target == 1, pred_choice == 1))
@@ -45,4 +45,4 @@ def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_sam
     print("Acc:", np.sum(correct) / np.sum(total), "F1 score", np.mean(f1score), "Precision:", np.mean(precision),
           "Recall:", np.mean(recall))
 
-    return np.array(f1score), np.array(precision), np.array(recall), acc
+    return np.array(f1score), np.array(precision), np.array(recall), acc, best_thresholds
