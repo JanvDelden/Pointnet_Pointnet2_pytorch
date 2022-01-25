@@ -287,7 +287,8 @@ def main(args):
 
             # get predictions for different thresholds
             thresholds = torch.tensor([0.3, 0.32, 0.34, 0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5,
-                                       0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7]).reshape(1, 1, 21)
+                                       0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7, 0.72,
+                                       0.74, 0.76, 0.78, 0.80, 0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98]).reshape(1, 1, 35)
             pred_choice_varying_threshold = torch.exp(seg_pred.data[:, 1].cpu()).reshape(cur_batch_size, n_sampled_points, 1) >= thresholds
             pred_choice_varying_threshold = pred_choice_varying_threshold.numpy()
             target = target.cpu().data.numpy().reshape(cur_batch_size, n_sampled_points, 1)
@@ -366,7 +367,8 @@ def main(args):
 
                 # get predictions for different thresholds
                 thresholds = torch.tensor([0.3, 0.32, 0.34, 0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5,
-                                           0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7]).reshape(1, 1, 21)
+                                           0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7, 0.72,
+                                           0.74, 0.76, 0.78, 0.80, 0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98]).reshape(1, 1, 35)
                 pred_choice_varying_threshold = torch.exp(seg_pred.data[:, 1].cpu()).reshape(cur_batch_size,
                                                                                              args.npoint,
                                                                                              1) >= thresholds
