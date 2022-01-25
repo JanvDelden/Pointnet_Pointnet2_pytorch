@@ -126,7 +126,6 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
     except:
         best_threshold = 0.5
 
-
     use_cuda = torch.cuda.is_available()
     device = torch.device('cuda:0' if use_cuda else 'cpu')
     classifier = get_model(source_path, device)
@@ -135,6 +134,7 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
                                      transform=t.Compose([t.Normalize()]),
                                      splitpath=split_path,
                                      normal_channel=False, mode="eval")
+
     # generate n_samples predictions
     allpoints = dataset[tree_number][3]
     targets = dataset[tree_number][5]
@@ -146,39 +146,30 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
 
     if method == "mean":
         certainty_scores = np.vectorize(compute_certainty_score)(preds, best_threshold)
+        certainty_scores = certainty_scores / 2 + 0.5
         prediction = np.mean(certainty_scores, axis=1)
 
     elif method == "majority":
         prediction = (preds > best_threshold).astype("int")
-        prediction = np.sum(prediction, axis=1)
-        prediction = (prediction - (preds.shape[1] / 2)) / (preds.shape[1] / 2)
+        prediction = np.mean(prediction, axis=1)
 
     return prediction, allpoints, targets, best_threshold
 
 
 def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method="mean"):
 
-    # if best thresholds are available, choose them, otherwise simply use 0.5 as threshold
     best_thresholds = []
+    preds = []
 
     for source_path in source_paths:
-        try:
-            checkpoint = torch.load(source_path + '/checkpoints/best_model.pth')
-            best_threshold = checkpoint["best_threshold"]
-            best_thresholds.append(best_threshold)
-        except:
-            best_thresholds.append(0.5)
+        pred, allpoints, targets, best_threshold = multi_sample_ensemble(source_path, npoints, tree_number, n_samples, method)
+        preds.append(pred)
+        best_thresholds.append(best_threshold)
 
-    predictions = []
+    preds = np.array(preds).T
 
-    for source_path in source_paths:
-        prediction, allpoints, targets = multi_sample_ensemble(source_path, npoints, tree_number, n_samples, method)
-        predictions.append(prediction)
-
-    preds = np.array(predictions).T
     if method == "mean":
-        certainty_scores = np.vectorize(compute_certainty_score)(preds, best_thresholds)
-        prediction = np.mean(certainty_scores, axis=1)
+        preds = np.mean(preds, axis=1)
 
     elif method == "majority":
         prediction = (preds > best_thresholds).astype("int")
