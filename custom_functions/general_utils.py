@@ -249,7 +249,7 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
     all_preds = []
     assert len(ids) > 0
     for tree in ids:
-        pred, points = gu.multi_model_ensemble(source_paths, npoints, tree, n_samples, method)[:2]
+        pred, points = multi_model_ensemble(source_paths, npoints, tree, n_samples, method)[:2]
         if tree == old_number:
             relevant_points = tuple(tuple(x) for x in points.tolist())
             prediction = tuple(x for x in pred.tolist())
@@ -260,7 +260,7 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
     setpoints = set(relevant_points)
 
     for points, pred in all_preds:
-        intersection = setpoints & set(tuple(tuple(x) for x in test_points.tolist()))
+        intersection = setpoints & set(tuple(tuple(x) for x in points.tolist()))
         for point in intersection:
             predcollation[point].append(pred[point == points])
 
