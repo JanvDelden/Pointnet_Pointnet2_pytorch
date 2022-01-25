@@ -139,12 +139,11 @@ def extrapolate(pred_probabilities, neighbours_indices):
 
 
 def compute_certainty_score(probability, threshold):
-    normed_probability = probability - threshold
 
-    if normed_probability < 0:
-        certainty_score = normed_probability / threshold
+    if (probability - threshold) < 0:
+        certainty_score = (probability - threshold) / threshold
     else:
-        certainty_score = normed_probability / (1 - threshold)
+        certainty_score = (probability - threshold) / (1 - threshold)
 
     return certainty_score
 
@@ -179,15 +178,15 @@ def multi_sample_ensemble(source_path, npoints, tree_number, n_samples=5, method
         preds[:, i] = extrapolate(pred_probabilities, indices)
 
     if method == "mean":
-        certainty_scores = np.vectorize(compute_certainty_score)(preds, best_threshold)
-        certainty_scores = certainty_scores / 2 + 0.5
-        prediction = np.mean(certainty_scores, axis=1)
+        preds = np.vectorize(compute_certainty_score)(preds, best_threshold)
+        preds = preds / 2 + 0.5
+        preds = np.mean(preds, axis=1)
 
     elif method == "majority":
-        prediction = (preds > best_threshold).astype("int")
-        prediction = np.mean(prediction, axis=1)
+        preds = (preds > best_threshold).astype("int")
+        preds = np.mean(preds, axis=1)
 
-    return prediction, allpoints, targets, best_threshold
+    return preds, allpoints, targets, best_threshold
 
 
 def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method="mean"):
@@ -206,11 +205,10 @@ def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method
         preds = np.mean(preds, axis=1)
 
     elif method == "majority":
-        prediction = (preds > best_thresholds).astype("int")
-        prediction = np.sum(prediction, axis=1)
-        prediction = (prediction - (preds.shape[1] / 2)) / (preds.shape[1] / 2)
+        preds = (preds >= 0.5).astype("int")
+        preds = np.mean(preds, axis=1)
 
-    return prediction, allpoints, targets, best_thresholds
+    return preds, allpoints, targets, best_thresholds
 
 
 def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples=5, method="mean",
