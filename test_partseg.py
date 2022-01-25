@@ -26,7 +26,7 @@ def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_sam
             # source path needs to be a list for this
             pred, allpoints, target, best_thresholds = gu.multi_model_ensemble(source_path, npoints, tree_number=i, n_samples=n_samples, method=method)
 
-        pred_choice = (pred > 0).astype("int")
+        pred_choice = (pred > 0.5).astype("int")
 
         # measures
         tp = np.sum(np.logical_and(target == 1, pred_choice == 1))
