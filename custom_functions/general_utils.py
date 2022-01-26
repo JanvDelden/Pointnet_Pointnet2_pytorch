@@ -211,6 +211,12 @@ def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method
     return preds, allpoints, targets, best_thresholds
 
 
+position_path = "/content/drive/MyDrive/Colab/tree_learning/data/positions_attempt2.json"
+import json
+
+position_path = "/content/drive/MyDrive/Colab/tree_learning/data/positions_attempt2.json"
+import json
+
 def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples=5, method="mean",
                         position_path=position_path):
     # determine tree numbers where a prediction is needed
@@ -239,10 +245,11 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
     all_preds = []
     assert len(ids) > 0
     for tree in ids:
-        pred, points = multi_model_ensemble(source_paths, npoints, tree, n_samples, method)[:2]
+        pred, points, target = multi_model_ensemble(source_paths, npoints, tree, n_samples, method)[:3]
         if tree == old_number:
             relevant_points = tuple(tuple(x) for x in points.tolist())
             prediction = tuple(x for x in pred.tolist())
+            alltarget = target
         else:
             all_preds.append((points, pred))
 
@@ -257,11 +264,10 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
     allpoints, allpreds = [], []
     for key, value in predcollation.items():
         if len(value) > 1:
-            value = np.argmax(value) == 0
+            value = np.argmax(value)
         else:
-            value = value[0]
+            value = value[0] > 0.5
         allpoints.append(key)
         allpreds.append(value)
 
-    return np.array(allpoints), np.array(allpreds)
-
+    return np.array(allpoints), np.array(allpreds), np.array(alltarget)
