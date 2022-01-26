@@ -67,7 +67,7 @@ def gen_spatial_split(percentages=(0.7, 0.3),
         offset = offset * (maxval - minval - sidelength)
         isin = np.all(np.logical_and(positions[:, :2] > minval + offset, positions[:, :2] < minval + sidelength + offset), axis=1)
     else:
-        isin = np.all(positions[:,:2] < maxval[:2] - sidelength, axis=1)
+        isin = np.all(positions[:,:2] > maxval[:2] - sidelength, axis=1)
         offset = 0
 
     indices = np.arange(0, len(positions))
@@ -75,7 +75,6 @@ def gen_spatial_split(percentages=(0.7, 0.3),
     np.save(paths[0], indices[np.invert(isin)])
 
     return sidelength, offset
-
 
 def get_model(source_path, device):
     model_name = set(os.listdir(source_path)) - set(
