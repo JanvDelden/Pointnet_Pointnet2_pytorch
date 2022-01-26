@@ -29,7 +29,7 @@ def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_sam
         elif ensemble == "tree":
             pred, allpoints, target = gu.multi_tree_ensemble(source_path, npoints, tree_number=i, radius=radius,
                                                              n_samples=n_samples, method=method, position_path=position_path)
-        pred_choice = (pred > 0).astype("int")
+        pred_choice = (pred > 0.5).astype("int")
 
         # measures
         tp = np.sum(np.logical_and(target == 1, pred_choice == 1))
