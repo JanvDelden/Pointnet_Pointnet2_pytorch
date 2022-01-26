@@ -270,4 +270,4 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
         allpoints.append(key)
         allpreds.append(value)
 
-    return np.array(allpoints), np.array(allpreds), np.array(alltarget)
+    return np.array(allpreds), np.array(allpoints), np.array(alltarget)
