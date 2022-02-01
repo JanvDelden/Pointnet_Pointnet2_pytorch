@@ -56,6 +56,6 @@ def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_sam
     acc = np.array(correct) / np.array(total)
     print("")
     print("Acc:", np.sum(correct) / np.sum(total), "F1 score", np.nanmean(f1score), "Precision:", np.nanmean(precision),
-          "Recall:", np.nanmean(recall), "Na Precision:", na_precision, "Na Recall:", na_recall)
+          "Recall:", np.nanmean(recall), "\nNa Precision:", na_precision, "Na Recall:", na_recall)
 
     return np.array(f1score), np.array(precision), np.array(recall), acc
