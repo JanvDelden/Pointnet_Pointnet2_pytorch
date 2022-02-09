@@ -16,12 +16,14 @@ class PartNormalDataset(Dataset):
         self.splitpath = splitpath
         self.normal_channel = normal_channel
         dir_point = os.path.join(root, "01234/")
-        paths = np.array(os.listdir(dir_point))
+        paths = os.listdir(dir_point)
+        paths = [int(x[0:-4]) for x in paths]
+        paths = np.sort(paths)
         self.datapath = []
         for path in paths:
-            self.datapath.append(os.path.join(dir_point, path))
+            self.datapath.append(os.path.join(dir_point, str(path) + ".npy"))
         split = np.load(splitpath).astype(np.int32)
-        self.datapath =np.array(self.datapath)
+        self.datapath = np.array(self.datapath)
         self.datapath = self.datapath[split]
 
     def __getitem__(self, index):
