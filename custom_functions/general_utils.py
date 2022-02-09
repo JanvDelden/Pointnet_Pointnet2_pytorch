@@ -6,7 +6,7 @@ from sklearn.neighbors import NearestNeighbors
 import transform as t
 import ShapeNetDataLoader as dset
 import numpy as np
-import json
+
 position_path = "/content/drive/MyDrive/Colab/tree_learning/data/positions_attempt2.json"
 
 
@@ -230,7 +230,6 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
     distances = np.linalg.norm(positions[:, :2] - center[:2], ord=None, axis=1)
     tree_indices = np.argwhere(distances < radius)
     tree_indices = tree_indices.reshape(len(tree_indices))
-    print(tree_indices)
 
     # only choose tree_indices in valsplit
     ids = []
@@ -238,7 +237,6 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
         test = np.argwhere(index == split)
         if len(test) > 0:
             ids.append(test[0, 0])
-    print(ids)
 
     # generate predictions
     all_preds = []

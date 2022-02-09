@@ -45,17 +45,17 @@ def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_sam
 
         na_precision = False
         na_recall = False
-        na_f1scores = False
 
-        if any(np.isnan(precision)):
-            na_precision = True
 
-        if any(np.isnan(recall)):
-            na_recall = True
+    if any(np.isnan(precision)):
+        na_precision = True
+
+    if any(np.isnan(recall)):
+        na_recall = True
 
     acc = np.array(correct) / np.array(total)
     print("")
-    print("Acc:", np.sum(correct) / np.sum(total), "F1 score", np.nanmean(f1score), "Precision:", np.nanmean(precision),
-          "Recall:", np.nanmean(recall), "\nNa Precision:", na_precision, "Na Recall:", na_recall)
+    print("Acc:", np.sum(correct) / np.sum(total), "F1score", np.nanmean(f1score), "Precision:", np.nanmean(precision),
+          "Recall:", np.nanmean(recall), "\nNaPrecision:", na_precision, "NaRecall:", na_recall)
 
     return np.array(f1score), np.array(precision), np.array(recall), acc
