@@ -280,13 +280,13 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
     # generate predictions
     all_preds = []
     assert len(ids) > 0
-    for i, tree in enumerate(ids):
+    for i, tree in enumerate(tree_indices):
         pred, points, target = multi_sample_ensemble2(source_paths[0], npoints, tree_number=tree,
                                                         n_samples=n_samples)[:3]
         start = positions[tree_indices[i]]
         points = points + start
         print(len(points))
-        if tree == old_number:
+        if tree == tree_number:
             relevant_points = points.copy()
             prediction = pred
             alltarget = target
@@ -321,7 +321,7 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
 
 def multi_sample_ensemble2(source_path, npoints, tree_number, n_samples=5, method="mean"):
     split_path = "/content/valsplit.npy"
-    gu.gen_split(paths = [split_path], shuffle=False, percentages=[1], sample_number=251)
+    gen_split(paths = [split_path], shuffle=False, percentages=[1], sample_number=251)
     root = "/content/Pointnet_Pointnet2_pytorch/data/"
 
     # if best threshold is available, choose it, otherwise simply use 0.5 as threshold
@@ -347,7 +347,7 @@ def multi_sample_ensemble2(source_path, npoints, tree_number, n_samples=5, metho
     preds = np.empty((len(allpoints), n_samples))
     for i in range(n_samples):
         pred_probabilities, upoints = gen_pred(classifier, tree_number=tree_number, treedataset=dataset, device=device)
-        indices = gu.find_neighbours(upoints, allpoints, 5)
+        indices = find_neighbours(upoints, allpoints, 5)
         preds[:, i] = extrapolate(pred_probabilities, indices)
 
     if method == "mean":
