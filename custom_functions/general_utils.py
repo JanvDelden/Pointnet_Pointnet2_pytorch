@@ -316,7 +316,7 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
     preds = rel[rel.columns.difference(['x', 'y', "z", "target", "hash"])].to_numpy()
     preds = rel["pred"].to_numpy() / np.nansum(preds, axis=1)
     targets = rel["target"].to_numpy()
-    return points, preds, targets
+    return preds, points, targets
 
 
 def multi_sample_ensemble2(source_path, npoints, tree_number, n_samples=5, method="mean"):
