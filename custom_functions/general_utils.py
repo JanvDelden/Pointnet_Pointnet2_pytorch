@@ -281,7 +281,7 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
     all_preds = []
     assert len(ids) > 0
     for i, tree in enumerate(ids):
-        pred, points, target = gu.multi_sample_ensemble(source_paths[0], npoints, tree_number=tree,
+        pred, points, target = multi_sample_ensemble(source_paths[0], npoints, tree_number=tree,
                                                         n_samples=n_samples)[:3]
         start = positions[tree_indices[i]]
         points = points + start
