@@ -28,7 +28,7 @@ def evaluate_model(npoints, source_path, ensemble="sample", method="mean", n_sam
             pred, allpoints, target, best_thresholds = gu.multi_model_ensemble(source_path, npoints, tree_number=i, n_samples=n_samples, method=method)
         elif ensemble == "tree":
             pred, allpoints, target = gu.multi_tree_ensemble(source_path, npoints, tree_number=i, radius=radius,
-                                                             n_samples=n_samples, method=method, position_path=position_path)
+                                                             n_samples=n_samples, method=method)
         pred_choice = (pred > 0.5).astype("int")
 
         # measures

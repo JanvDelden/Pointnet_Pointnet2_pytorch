@@ -6,6 +6,8 @@ from sklearn.neighbors import NearestNeighbors
 import transform as t
 import ShapeNetDataLoader as dset
 import numpy as np
+sys.path.append("/content/treelearning/python")
+import cloud
 
 position_path = "/content/drive/MyDrive/Colab/tree_learning/data/positions_attempt2.json"
 
@@ -213,11 +215,29 @@ def multi_model_ensemble(source_paths, npoints, tree_number, n_samples=5, method
 position_path = "/content/drive/MyDrive/Colab/tree_learning/data/positions_attempt2.json"
 import json
 
-position_path = "/content/drive/MyDrive/Colab/tree_learning/data/positions_attempt2.json"
-import json
+from tqdm import tqdm
+
+forest_path = "/content/drive/MyDrive/Colab/tree_learning/data/forest_labeled_cleanest2.npy"
+
+
+def fnv_hash_vec(arr):
+    """
+    FNV64-1A see wikipedia
+    """
+    assert arr.ndim == 2
+    # Floor first for negative points
+    hashed_arr = arr[:, 0] * arr[:, 1] * arr[:, 2] + 0.1 * np.sqrt(arr[:, 2])
+    return hashed_arr.tolist()
+
 
 def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples=5, method="mean",
                         position_path=position_path):
+    """
+
+    This function is not really good but just a proof of concept. The points of different chunks can not be easily combined to find their partners in the other chunks
+    due to the voxelization, we only manage roughly 1/3.
+    The targets are not useable
+    """
     # determine tree numbers where a prediction is needed
     with open(position_path, "r") as f:
         positions = json.load(f)
@@ -230,6 +250,7 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
     distances = np.linalg.norm(positions[:, :2] - center[:2], ord=None, axis=1)
     tree_indices = np.argwhere(distances < radius)
     tree_indices = tree_indices.reshape(len(tree_indices))
+    print(tree_indices)
 
     # only choose tree_indices in valsplit
     ids = []
@@ -237,34 +258,105 @@ def multi_tree_ensemble(source_paths, npoints, tree_number, radius=10, n_samples
         test = np.argwhere(index == split)
         if len(test) > 0:
             ids.append(test[0, 0])
+    print(ids)
+
+    # detect points that are common to other trees and main tree
+    pc = cloud.Cloud(points_path=forest_path, position_path=position_path, subsetting=1)
+    pc.filter(positions[tree_number], radius=6.9, remove999=True)
+    relevant_points = pc.filtered_points[:, 0:3]
+    hash = fnv_hash_vec(relevant_points)
+    print(len(np.unique(hash)), len(hash))
+
+    pointlist = []
+    for i, index in enumerate(tree_indices):
+        pc.filter(positions[index], radius=6.9, remove999=True)
+        points = pc.filtered_points[:, 0:3]
+        hashnew = fnv_hash_vec(points)
+        print(len(np.unique(hashnew)), len(hashnew))
+
+        if not (index == tree_number):
+            pointlist.append(np.hstack((points, np.isin(hashnew, hash)[:, np.newaxis])))
 
     # generate predictions
     all_preds = []
     assert len(ids) > 0
-    for tree in ids:
-        pred, points, target = multi_model_ensemble(source_paths, npoints, tree, n_samples, method)[:3]
+    for i, tree in enumerate(ids):
+        pred, points, target = gu.multi_sample_ensemble(source_paths[0], npoints, tree_number=tree,
+                                                        n_samples=n_samples)[:3]
+        start = positions[tree_indices[i]]
+        points = points + start
+        print(len(points))
         if tree == old_number:
-            relevant_points = tuple(tuple(x) for x in points.tolist())
-            prediction = tuple(x for x in pred.tolist())
+            relevant_points = points.copy()
+            prediction = pred
             alltarget = target
         else:
             all_preds.append((points, pred))
 
-    predcollation = dict(((x, [y]) for x, y in zip(relevant_points, prediction)))
-    setpoints = set(relevant_points)
+    # aggregate  predictions on pointlist
+    import pandas as pd
+    stack = np.hstack(
+        (relevant_points, prediction[:, np.newaxis], alltarget[:, np.newaxis], np.array(hash)[:, np.newaxis]))
+    rel = pd.DataFrame(stack, columns=["x", "y", "z", "pred", "target", "hash"])
+    rel = rel.drop_duplicates("hash")
+    i = 0
 
-    for points, pred in all_preds:
-        intersection = setpoints & set(tuple(tuple(x) for x in points.tolist()))
-        for point in intersection:
-            predcollation[point].append(pred[point == points])
+    for points, (oldpoints, pred) in zip(pointlist, all_preds):
+        assert len(points) == len(oldpoints)
+        hashnew = fnv_hash_vec(points)
+        print(np.mean(np.isin(hashnew, hash)))
+        stack = np.hstack((pred[:, np.newaxis], np.array(hashnew)[:, np.newaxis]))
+        df = pd.DataFrame(stack, columns=[i, "hash"])
+        df = df.drop_duplicates("hash")
 
-    allpoints, allpreds = [], []
-    for key, value in predcollation.items():
-        if len(value) > 1:
-            value = np.argmax(value)
-        else:
-            value = value[0] > 0.5
-        allpoints.append(key)
-        allpreds.append(value)
+        rel = pd.merge(rel, df, on="hash", how="left")
+        i = i + 1
+    print(rel.isna().sum())
+    points = rel[["x", "y", "z"]].to_numpy()
+    preds = rel[rel.columns.difference(['x', 'y', "z", "target", "hash"])].to_numpy()
+    preds = rel["pred"].to_numpy() / np.nansum(preds, axis=1)
+    targets = rel["target"].to_numpy()
+    return points, preds, targets
 
-    return np.array(allpreds), np.array(allpoints), np.array(alltarget)
+
+def multi_sample_ensemble2(source_path, npoints, tree_number, n_samples=5, method="mean"):
+    split_path = "/content/valsplit.npy"
+    gu.gen_split(paths = [split_path], shuffle=False, percentages=[1], sample_number=251)
+    root = "/content/Pointnet_Pointnet2_pytorch/data/"
+
+    # if best threshold is available, choose it, otherwise simply use 0.5 as threshold
+    try:
+        checkpoint = torch.load(source_path + '/checkpoints/best_model.pth')
+        best_threshold = checkpoint["best_threshold"]
+    except:
+        best_threshold = 0.5
+
+    use_cuda = torch.cuda.is_available()
+    device = torch.device('cuda:0' if use_cuda else 'cpu')
+    classifier = get_model(source_path, device)
+    dataset = dset.PartNormalDataset(root=root,
+                                     npoints=npoints,
+                                     transform=t.Compose([t.Normalize()]),
+                                     splitpath=split_path,
+                                     normal_channel=False, mode="eval")
+
+    # generate n_samples predictions
+    allpoints = dataset[tree_number][3]
+    print(len(allpoints), tree_number)
+    targets = dataset[tree_number][5]
+    preds = np.empty((len(allpoints), n_samples))
+    for i in range(n_samples):
+        pred_probabilities, upoints = gen_pred(classifier, tree_number=tree_number, treedataset=dataset, device=device)
+        indices = gu.find_neighbours(upoints, allpoints, 5)
+        preds[:, i] = extrapolate(pred_probabilities, indices)
+
+    if method == "mean":
+        preds = np.vectorize(compute_certainty_score)(preds, best_threshold)
+        preds = preds / 2 + 0.5
+        preds = np.mean(preds, axis=1)
+
+    elif method == "majority":
+        preds = (preds > best_threshold).astype("int")
+        preds = np.mean(preds, axis=1)
+
+    return preds, allpoints, targets, best_threshold
