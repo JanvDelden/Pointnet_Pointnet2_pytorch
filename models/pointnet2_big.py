@@ -20,10 +20,10 @@ class get_model(nn.Module):
                                              in_channel=3+additional_channel,
                                              mlp_list=[[32, 32, 64], [32, 32, 64], [64, 96, 128], [64, 96, 128]])
         self.sa2 = PointNetSetAbstractionMsg(256, radius_list=[0.12, 0.24, 0.48], nsample_list=[32, 64, 128],
-                                             in_channel=64+64+128+128+3,
+                                             in_channel=64+64+128+128,
                                              mlp_list=[[128, 128, 256], [128, 128, 256], [128, 196, 256]])
         self.sa3 = PointNetSetAbstractionMsg(128, radius_list=[0.24, 0.48, 0.8], nsample_list=[32, 64, 128],
-                                             in_channel=256+256+256+3,
+                                             in_channel=256+256+256,
                                              mlp_list=[[128, 128, 256], [128, 196, 256], [128, 196, 256]])  # might make these bigger
         self.sa4 = PointNetSetAbstraction(npoint=None, radius=None, nsample=None,
                                           in_channel=256+256+256+3,
