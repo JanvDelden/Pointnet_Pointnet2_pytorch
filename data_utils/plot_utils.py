@@ -1,8 +1,6 @@
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-import pandas as pd
-
 
 def plot(title, label, result_path, yscale='linear', legend=["Training", "Validation"],
          thinning=3):
